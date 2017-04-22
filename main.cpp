@@ -397,6 +397,9 @@ int distance(int x1, int y1, int x2, int y2)
 
 void attackCharacter(Tile* attackerTile, Tile* victimTile)
 {
+    if (attackerTile->character == NULL || victimTile->character == NULL)
+        return;
+
     int damage = attackerTile->character->strength - victimTile->character->defense;
     if (victimTile->character->isPlayer)
     {
@@ -507,7 +510,17 @@ void gameLoop()
                                 if (map[playerXPos][playerYPos + 1].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]);
-                                    moveEnemies();
+                                    if (playerWeaponType == WeaponType::Lunge && map[playerXPos][playerYPos + 1].character == NULL)
+                                    {
+                                        moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]);
+                                        playerYPos++;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                    else
+                                    {
+                                        moveEnemies();
+                                    }
                                 }
                                 else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
                                 {
@@ -524,7 +537,17 @@ void gameLoop()
                                 if (map[playerXPos - 1][playerYPos].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]);
-                                    moveEnemies();
+                                    if (playerWeaponType == WeaponType::Lunge && map[playerXPos - 1][playerYPos].character == NULL)
+                                    {
+                                        moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]);
+                                        playerXPos--;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                    else
+                                    {
+                                        moveEnemies();
+                                    }
                                 }
                                 else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
                                 {
@@ -541,7 +564,17 @@ void gameLoop()
                                 if (map[playerXPos + 1][playerYPos].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]);
-                                    moveEnemies();
+                                    if (playerWeaponType == WeaponType::Lunge && map[playerXPos + 1][playerYPos].character == NULL)
+                                    {
+                                        moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]);
+                                        playerXPos++;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                    else
+                                    {
+                                        moveEnemies();
+                                    }
                                 }
                                 else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
                                 {
@@ -558,7 +591,17 @@ void gameLoop()
                                 if (map[playerXPos][playerYPos - 1].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]);
-                                    moveEnemies();
+                                    if (playerWeaponType == WeaponType::Lunge && map[playerXPos][playerYPos - 1].character == NULL)
+                                    {
+                                        moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]);
+                                        playerYPos--;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                    else
+                                    {
+                                        moveEnemies();
+                                    }
                                 }
                                 else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
                                 {
