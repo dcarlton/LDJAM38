@@ -10,6 +10,7 @@
 #include <windows.h>
 
 #include "SDL.h"
+#include "SDL_mixer.h"
 #include "SDL_ttf.h"
 
 
@@ -70,6 +71,12 @@ SDL_Window* window = NULL;
 
 TTF_Font* font = NULL;
 
+Mix_Chunk* getGoldSoundEffect = NULL;
+Mix_Chunk* healingSoundEffect = NULL;
+Mix_Chunk* hitSoundEffect = NULL;
+Mix_Chunk* hurtSoundEffect = NULL;
+Mix_Chunk* upgradeSoundEffect = NULL;
+
 void setAlphaColor(SDL_Surface* surface, int r, int g, int b)
 {
     SDL_Log("Setting the color key");
@@ -118,6 +125,13 @@ void initTiles()
     setAlphaColor(superWhipImage, 255, 255, 255);
     whipImage = SDL_LoadBMP("Whip.bmp");
     setAlphaColor(whipImage, 255, 255, 255);
+
+    // This function may be a little out of its original scope...
+    getGoldSoundEffect = Mix_LoadWAV("GetGold.wav");
+    healingSoundEffect = Mix_LoadWAV("Healing.wav");
+    hitSoundEffect = Mix_LoadWAV("Hit.wav");
+    hurtSoundEffect = Mix_LoadWAV("Hurt.wav");
+    upgradeSoundEffect = Mix_LoadWAV("Upgrade.wav");
 }
 
 void logInfo(char* info)
@@ -410,50 +424,59 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
         {
             if (newTile->item == Item::GoldPile)
             {
+                Mix_PlayChannel(2, getGoldSoundEffect, 0);
                 playerGold++;
             }
             else if (newTile->item == Item::Health)
             {
+                Mix_PlayChannel(2, healingSoundEffect, 0);
                 player.health++;
             }
             else if (newTile->item == Item::Rapier)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 1;
                 playerWeaponType = WeaponType::Lunge;
             }
             else if (newTile->item == Item::Shield)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 1;
                 player.strength = 1;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::Whip)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 1;
                 playerWeaponType = WeaponType::Flail;
             }
             else if (newTile->item == Item::SuperRapier)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
                 playerWeaponType = WeaponType::Lunge;
             }
             else if (newTile->item == Item::SuperShield)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 1;
                 player.strength = 2;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::SuperSword)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::SuperWhip)
             {
+                Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
                 playerWeaponType = WeaponType::Flail;
@@ -487,11 +510,14 @@ void attackCharacter(Tile* attackerTile, Tile* victimTile)
 
         if (damage < 0)
             damage = 0;
+        else if (damage > 0)
+            Mix_PlayChannel(2, hurtSoundEffect, 0);
 
         player.health -= damage;
     }
     else
     {
+        Mix_PlayChannel(2, hitSoundEffect, 0);
         victimTile->character->health -= damage;
         if (victimTile->character->health <= 0)
         {
@@ -554,6 +580,9 @@ void gameLoop()
     // TODO: Better title
     window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               160, 192, 0);
+    Mix_Chunk* currentMusic = Mix_LoadWAV("SlowMusic1.wav");
+    Mix_PlayChannel(1, currentMusic, -1);
+    bool playingSlowMusic = true;
 
     for (int x = 0; x < 3; x++)
     {
@@ -899,6 +928,15 @@ void gameLoop()
         SDL_BlitSurface(textSurface, NULL, SDL_GetWindowSurface(window), &textRect);
 
         SDL_UpdateWindowSurface(window);
+
+
+        // Switch the music track halfway through
+        if (playingSlowMusic && secondsSinceStart == 29)
+        {
+            Mix_Chunk* newMusic = Mix_LoadWAV("Music1.wav");
+            Mix_FreeChunk(currentMusic);
+            Mix_PlayChannel(1, newMusic, -1);
+        }
     } // End of the endless while loop
 }
 
@@ -908,6 +946,9 @@ int main()
     SDL_Log("Initializing SDL");
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
     TTF_Init();
+    Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+    Mix_Volume(1, 60);
+    Mix_Volume(2, 30);
     SDL_Log("Finished initializing SDL");
 
     initTiles();
@@ -924,7 +965,10 @@ int main()
 
     gameLoop();
 
+    //bool playAgain = gameOverScreen();
+
     SDL_Log("Shutting down");
+    Mix_CloseAudio();
     TTF_Quit();
     SDL_Quit();
     SDL_Log("Smell ya later!");
