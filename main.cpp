@@ -4,12 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 #include <windows.h>
 
 #include "SDL.h"
 
 
-enum TileType {Nothing = 0, Gold, Upgrade, Berserk, Defense, Healing};
+enum Item {None, GoldPile, Rapier, Spear, SuperRapier, SuperSpear, SuperSword, SuperWhip, Whip};
+enum TileType {Nothing, Gold, Upgrade, Berserk, Defense, Healing};
+
 
 typedef struct
 {
@@ -21,10 +24,12 @@ typedef struct
 {
     TileType tileType;
     Character* character;
+    Item item;
 } Tile;
 
 Tile map[3][3];
 Character player;
+int playerGold;
 int playerXPos;
 int playerYPos;
 
@@ -34,6 +39,8 @@ SDL_Surface* goldTile = NULL;
 SDL_Surface* healingTile = NULL;
 SDL_Surface* nothingTile = NULL;
 SDL_Surface* upgradeTile = NULL;
+
+SDL_Surface* goldPileImage = NULL;
 
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
@@ -51,6 +58,8 @@ void initTiles()
     healingTile = SDL_LoadBMP("Healing.bmp");
     nothingTile = SDL_LoadBMP("Nothing.bmp");
     upgradeTile = SDL_LoadBMP("Upgrade.bmp");
+
+    goldPileImage = SDL_LoadBMP("GoldPile.bmp");
 }
 
 void logInfo(char* info)
@@ -66,6 +75,7 @@ Tile getRandomTile()
 {
     Tile tile;
     tile.character = NULL;
+    tile.item = Item::None;
     
     switch (rand() % 6)
     {
@@ -104,6 +114,36 @@ Tile getRandomTile()
 TileType getRandomTileType()
 {
     return getRandomTile().tileType;
+}
+
+// I'm assuming the player's position is correctly updated
+// before this is called.
+// Activates the tile the player's standing on.
+void activateTile()
+{
+    switch (map[playerXPos][playerYPos].tileType)
+    {
+        case TileType::Gold:
+            std::vector<Tile*> openTiles;
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    if (map[x][y].item == Item::None && !(x == playerXPos && y == playerYPos))
+                        openTiles.push_back(&map[x][y]);
+                }
+            }
+
+            if (openTiles.size() > 0)
+            {
+                SDL_Log("Giving gold");
+                int random = rand() % openTiles.size();
+                openTiles[random]->item = Item::GoldPile;
+            }
+            break;
+    }
+
+    map[playerXPos][playerYPos].tileType = getRandomTileType();
 }
 
 void drawTile(int xIndex, int yIndex)
@@ -154,6 +194,12 @@ void drawTile(int xIndex, int yIndex)
     {
         SDL_BlitSurface(map[xIndex][yIndex].character->image, NULL, SDL_GetWindowSurface(window), &tileRect);
     }
+
+    // Draw the item on the tile
+    if (map[xIndex][yIndex].item != Item::None)
+    {
+        SDL_BlitSurface(goldPileImage, NULL, SDL_GetWindowSurface(window), &tileRect);
+    }
 }
 
 bool movePlayer(Tile* oldTile, Tile* newTile)
@@ -166,7 +212,6 @@ bool movePlayer(Tile* oldTile, Tile* newTile)
 
     newTile->character = oldTile->character;
     oldTile->character = NULL;
-    newTile->tileType = getRandomTileType();
     return true;
 }
 
@@ -200,7 +245,10 @@ void gameLoop()
                             if (playerYPos < 2)
                             {
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
+                                {
                                     playerYPos++;
+                                    activateTile();
+                                }
                             }
                             break;
 
@@ -208,7 +256,10 @@ void gameLoop()
                             if (playerXPos > 0)
                             {
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
+                                {
                                     playerXPos--;
+                                    activateTile();
+                                }
                             }
                             break;
                         
@@ -216,7 +267,10 @@ void gameLoop()
                             if (playerXPos < 2)
                             {
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
+                                {
                                     playerXPos++;
+                                    activateTile();
+                                }
                             }
                             break;
 
@@ -224,7 +278,10 @@ void gameLoop()
                             if (playerYPos > 0)
                             {
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
+                                {
                                     playerYPos--;
+                                    activateTile();
+                                }
                             }
                             break;
 
@@ -258,7 +315,7 @@ void gameLoop()
         }
 
         SDL_UpdateWindowSurface(window);
-    }
+    } // End of the endless while loop
 }
 
 int main()
@@ -269,6 +326,7 @@ int main()
     initTiles();
     player.health = 3;
     player.image = hero;
+    playerGold = 0;
     playerXPos = 1;
     playerYPos = 1;
     SDL_Log("Finished initializing SDL");
