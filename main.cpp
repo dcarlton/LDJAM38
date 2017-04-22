@@ -577,9 +577,6 @@ void moveEnemies()
 
 void gameLoop()
 {
-    // TODO: Better title
-    window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              160, 192, 0);
     Mix_Chunk* currentMusic = Mix_LoadWAV("SlowMusic1.wav");
     Mix_PlayChannel(1, currentMusic, -1);
     bool playingSlowMusic = true;
@@ -935,9 +932,76 @@ void gameLoop()
         {
             Mix_Chunk* newMusic = Mix_LoadWAV("Music1.wav");
             Mix_FreeChunk(currentMusic);
-            Mix_PlayChannel(1, newMusic, -1);
+            Mix_PlayChannel(1, newMusic, 0);
         }
     } // End of the endless while loop
+}
+
+bool gameOverScreen()
+{
+    SDL_Color white = {255, 255, 255, 0};
+    while (true)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+                case SDL_KEYDOWN:
+                    switch (event.key.keysym.sym)
+                    {
+                        case SDLK_RETURN:
+                            return true;
+
+                        case SDLK_ESCAPE:
+                            return false;
+                    }
+                    break;
+
+                case SDL_QUIT:
+                    return false;
+            }
+        }
+
+        SDL_BlitSurface(backgroundImage, NULL, SDL_GetWindowSurface(window), NULL);
+
+        SDL_Surface* gameOverSurface = TTF_RenderText_Solid(font, "Game Over!", white);
+        SDL_Rect targetRect;
+        targetRect.x = 50;
+        targetRect.y = 50;
+        SDL_BlitSurface(gameOverSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+        SDL_FreeSurface(gameOverSurface);
+
+        targetRect.x = 60;
+        targetRect.y = 70;
+        SDL_BlitSurface(goldPileImage, NULL, SDL_GetWindowSurface(window), &targetRect);
+
+        char scoreText[4];
+        char buffer[4];
+        strcpy(scoreText, itoa(playerGold, buffer, 10));
+        SDL_Surface* scoreSurface = TTF_RenderText_Solid(font, scoreText, white);
+        targetRect.x = 100;
+        targetRect.y = 90;
+        SDL_BlitSurface(scoreSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+        SDL_FreeSurface(scoreSurface);
+        
+        SDL_Surface* tryAgainSurface = TTF_RenderText_Solid(font, "Press Enter to retry.", white);
+        targetRect.x = 5;
+        targetRect.y = 110;
+        SDL_BlitSurface(tryAgainSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+        SDL_FreeSurface(tryAgainSurface);
+
+        SDL_Surface* quitSurface = TTF_RenderText_Solid(font, "Press Escape to quit.", white);
+        targetRect.x = 5;
+        targetRect.y = 130;
+        SDL_BlitSurface(quitSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+        SDL_FreeSurface(quitSurface);
+
+        SDL_UpdateWindowSurface(window);
+    }
+
+    SDL_Log("How'd we get out of an endless loop?");
+    return false;
 }
 
 int main()
@@ -947,25 +1011,35 @@ int main()
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
     TTF_Init();
     Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+    // Should be 60 and 30
     Mix_Volume(1, 60);
     Mix_Volume(2, 30);
     SDL_Log("Finished initializing SDL");
 
+    // TODO: Better title
+    window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              160, 192, 0);
     initTiles();
     font = TTF_OpenFont("cour.ttf", 12);
-    player.defense = 0;
-    player.health = 3;
-    player.image = hero;
-    player.isPlayer = true;
-    player.strength = 1;
-    playerGold = 0;
-    playerWeaponType = WeaponType::Straight;
-    playerXPos = 1;
-    playerYPos = 1;
 
-    gameLoop();
+    while (true)
+    {
+        player.defense = 0;
+        player.health = 3;
+        player.image = hero;
+        player.isPlayer = true;
+        player.strength = 1;
+        playerGold = 0;
+        playerWeaponType = WeaponType::Straight;
+        playerXPos = 1;
+        playerYPos = 1;
 
-    //bool playAgain = gameOverScreen();
+        gameLoop();
+
+        bool playAgain = gameOverScreen();
+        if (!playAgain)
+            break;
+    }
 
     SDL_Log("Shutting down");
     Mix_CloseAudio();
