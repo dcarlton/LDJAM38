@@ -32,6 +32,7 @@ Character player;
 int playerGold;
 int playerXPos;
 int playerYPos;
+time_t startTime;
 
 SDL_Surface* berserkTile = NULL;
 SDL_Surface* defenseTile = NULL;
@@ -235,10 +236,14 @@ void gameLoop()
         }
     }
     map[1][1].character = &player;
+    startTime = time(NULL);
 
     SDL_Event event;
     while (true)
     {
+        if (difftime(time(NULL), startTime) >= 10)
+            return;
+
         while (SDL_PollEvent(&event))
         {
             switch (event.type)
