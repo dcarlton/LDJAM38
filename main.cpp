@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <fstream>
 #include <iostream>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,7 @@ enum TileType {Nothing, Gold, Upgrade, Berserk, Defense, Healing};
 typedef struct
 {
     SDL_Surface* image;
+    bool isPlayer;
     int health;
 } Character;
 
@@ -167,6 +169,7 @@ void activateTile()
                 Character* enemy = new Character;
                 enemy->health = 1;
                 enemy->image = skeletonImage;
+                enemy->isPlayer = false;
 
                 int random = rand() % openTiles.size();
                 openTiles[random]->character = enemy;
@@ -252,6 +255,30 @@ bool movePlayer(Tile* oldTile, Tile* newTile)
     return true;
 }
 
+int distance(int x1, int y1, int x2, int y2)
+{
+    return std::abs((int)(x1 - x2)) + std::abs((int)(y1 - y2));
+}
+
+void moveEnemies()
+{
+    for (int x = 0; x < 3; x++)
+    {
+        for (int y = 0; y < 3; y++)
+        {
+            if (map[x][y].character != NULL && !map[x][y].character->isPlayer)
+            {
+                // We found an enemy.
+                // Attack!
+                if (distance(x, y, playerXPos, playerYPos) == 1)
+                {
+                    player.health--;
+                }
+            }
+        }
+    }
+}
+
 void gameLoop()
 {
     // TODO: Better title
@@ -272,7 +299,8 @@ void gameLoop()
     SDL_Event event;
     while (true)
     {
-        if (difftime(time(NULL), startTime) >= TIMER_LENGTH)
+        // TODO: Game over screen
+        if (difftime(time(NULL), startTime) >= TIMER_LENGTH || player.health < 1)
             return;
 
         while (SDL_PollEvent(&event))
@@ -290,6 +318,7 @@ void gameLoop()
                                 {
                                     playerYPos++;
                                     activateTile();
+                                    moveEnemies();
                                 }
                             }
                             break;
@@ -301,6 +330,7 @@ void gameLoop()
                                 {
                                     playerXPos--;
                                     activateTile();
+                                    moveEnemies();
                                 }
                             }
                             break;
@@ -312,6 +342,7 @@ void gameLoop()
                                 {
                                     playerXPos++;
                                     activateTile();
+                                    moveEnemies();
                                 }
                             }
                             break;
@@ -323,6 +354,7 @@ void gameLoop()
                                 {
                                     playerYPos--;
                                     activateTile();
+                                    moveEnemies();
                                 }
                             }
                             break;
@@ -416,6 +448,7 @@ int main()
     font = TTF_OpenFont("cour.ttf", 12);
     player.health = 3;
     player.image = hero;
+    player.isPlayer = true;
     playerGold = 0;
     playerXPos = 1;
     playerYPos = 1;
