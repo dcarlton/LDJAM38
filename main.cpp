@@ -203,8 +203,6 @@ void activateTile()
             spawnItem(Item::Health);
             break;
     }
-
-    map[playerXPos][playerYPos].tileType = getRandomTileType();
 }
 
 void drawTile(int xIndex, int yIndex)
@@ -288,17 +286,21 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
     newTile->character = oldTile->character;
     oldTile->character = NULL;
 
-    if (newTile->character->isPlayer && newTile->item != Item::None)
+    if (newTile->character->isPlayer)
     {
-        if (newTile->item == Item::GoldPile)
+        oldTile->tileType = getRandomTileType();
+        if (newTile->item != Item::None)
         {
-            newTile->item = Item::None;
-            playerGold++;
-        }
-        else if (newTile->item == Item::Health)
-        {
-            newTile->item = Item::None;
-            player.health++;
+            if (newTile->item == Item::GoldPile)
+            {
+                newTile->item = Item::None;
+                playerGold++;
+            }
+            else if (newTile->item == Item::Health)
+            {
+                newTile->item = Item::None;
+                player.health++;
+            }
         }
     }
 
