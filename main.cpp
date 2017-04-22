@@ -317,8 +317,8 @@ void gameLoop()
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
                                 {
                                     playerYPos++;
-                                    activateTile();
                                     moveEnemies();
+                                    activateTile();
                                 }
                             }
                             break;
@@ -329,8 +329,8 @@ void gameLoop()
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
                                 {
                                     playerXPos--;
-                                    activateTile();
                                     moveEnemies();
+                                    activateTile();
                                 }
                             }
                             break;
@@ -341,8 +341,8 @@ void gameLoop()
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
                                 {
                                     playerXPos++;
-                                    activateTile();
                                     moveEnemies();
+                                    activateTile();
                                 }
                             }
                             break;
@@ -353,8 +353,8 @@ void gameLoop()
                                 if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
                                 {
                                     playerYPos--;
-                                    activateTile();
                                     moveEnemies();
+                                    activateTile();
                                 }
                             }
                             break;
