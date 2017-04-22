@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <vector>
 #include <windows.h>
@@ -30,7 +31,7 @@ typedef struct
 
 Tile map[3][3];
 Character player;
-int playerGold;
+int playerGold = 0;
 int playerXPos;
 int playerYPos;
 time_t startTime;
@@ -44,6 +45,7 @@ SDL_Surface* upgradeTile = NULL;
 
 SDL_Surface* goldPileImage = NULL;
 
+SDL_Surface* backgroundImage = NULL;
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
 
@@ -53,6 +55,7 @@ TTF_Font* font = NULL;
 
 void initTiles()
 {
+    backgroundImage = SDL_LoadBMP("Background.bmp");
     heartImage = SDL_LoadBMP("Heart.bmp");
     hero = SDL_LoadBMP("Hero.bmp");
 
@@ -240,11 +243,12 @@ void gameLoop()
     }
     map[1][1].character = &player;
     startTime = time(NULL);
+    const int TIMER_LENGTH = 10;
 
     SDL_Event event;
     while (true)
     {
-        if (difftime(time(NULL), startTime) >= 10)
+        if (difftime(time(NULL), startTime) >= TIMER_LENGTH)
             return;
 
         while (SDL_PollEvent(&event))
@@ -310,6 +314,10 @@ void gameLoop()
         }
 
         // Draw stuff
+        // Redraw the background
+        SDL_BlitSurface(backgroundImage, NULL, SDL_GetWindowSurface(window), NULL);
+        
+        // Draw each tile
         for (int x = 0; x < 3; x++)
         {
             for (int y = 0; y < 3; y++)
@@ -328,10 +336,43 @@ void gameLoop()
             SDL_BlitSurface(heartImage, NULL, SDL_GetWindowSurface(window), &tileRect);           
         }
 
+        // Draw the amount of gold
         SDL_Color white = {255, 255, 255, 0};
-        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Hoi! I'm Temmie!", white);
+        SDL_Rect goldTextRect;
+        goldTextRect.x = 0;
+        goldTextRect.y = 12;
+        char buffer[5];
+        char goldText[16];
+        strcpy(goldText, "Gold: ");
+        strcat(goldText, itoa(playerGold, buffer, 10));
+        SDL_Surface* goldTextSurface = TTF_RenderText_Solid(font, goldText, white);
+        SDL_BlitSurface(goldTextSurface, NULL, SDL_GetWindowSurface(window), &goldTextRect);
+
+        // Draw the timer
+        int secondsSinceStart = difftime(time(NULL), startTime);
+        char timeLeftText[5];
+        char timePrependText[5];
+        
+        if (secondsSinceStart >= 60)
+        {
+            strcpy(timePrependText, "1:");
+            secondsSinceStart -= 60;
+        }
+        else if ((TIMER_LENGTH - secondsSinceStart) < 10)
+        {
+            strcpy(timePrependText, "0:0");
+        }
+        else
+        {
+            strcpy(timePrependText, "0:");
+        }
+
+        strcpy(timeLeftText, timePrependText);
+        strcat(timeLeftText, itoa(TIMER_LENGTH - secondsSinceStart, buffer, 10));
+
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, timeLeftText, white);
         SDL_Rect textRect;
-        textRect.x = 100;
+        textRect.x = 130;
         textRect.y = 0;
         SDL_BlitSurface(textSurface, NULL, SDL_GetWindowSurface(window), &textRect);
 
