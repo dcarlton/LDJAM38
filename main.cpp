@@ -6,6 +6,15 @@
 
 #include "SDL.h"
 
+
+SDL_Surface* nothingTile = NULL;
+SDL_Window* window = NULL;
+
+void initTiles()
+{
+    nothingTile = SDL_LoadBMP("Nothing.bmp");
+}
+
 void logInfo(char* info)
 {
     std::ofstream logFile;
@@ -15,13 +24,22 @@ void logInfo(char* info)
     logFile.clear();
 }
 
+void drawTile(int xIndex, int yIndex)
+{
+    // Draw stuff
+    SDL_Rect tileRect;
+    tileRect.x = 32 + (xIndex * 32);
+    tileRect.y = 64 + (yIndex * 32);
+    SDL_BlitSurface(nothingTile, NULL, SDL_GetWindowSurface(window), &tileRect);
+
+    SDL_UpdateWindowSurface(window);
+}
+
 void gameLoop()
 {
-    SDL_Surface* nothingTile = SDL_LoadBMP("Nothing.bmp");
-
     // TODO: Better title
-    SDL_Window* window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                          160, 192, 0);
+    window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              160, 192, 0);
 
     SDL_Event test_event;
     while (true)
@@ -39,12 +57,7 @@ void gameLoop()
         }
 
         // Draw stuff
-        int xIndex = 2;
-        int yIndex = 1;
-        SDL_Rect tileRect;
-        tileRect.x = 32 + (xIndex * 32);
-        tileRect.y = 64 + (yIndex * 32);
-        SDL_BlitSurface(nothingTile, NULL, SDL_GetWindowSurface(window), &tileRect);
+        drawTile(2, 1);
 
         SDL_UpdateWindowSurface(window);
     }
@@ -54,6 +67,7 @@ int main()
 {
     SDL_Log("Initializing SDL");
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
+    initTiles();
     SDL_Log("Finished initializing SDL");
 
     gameLoop();
