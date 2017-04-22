@@ -1035,6 +1035,7 @@ int main()
         playerYPos = 1;
 
         gameLoop();
+        Mix_HaltChannel(1);
 
         bool playAgain = gameOverScreen();
         if (!playAgain)
