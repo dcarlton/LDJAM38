@@ -13,13 +13,15 @@
 #include "SDL_ttf.h"
 
 
-enum Item {None, GoldPile, Health, Rapier, Spear, SuperRapier, SuperSpear, SuperSword, SuperWhip, Whip};
+enum Item {None, GoldPile, Health, Rapier, Shield, SuperRapier, SuperShield, SuperSword, SuperWhip, Whip};
 enum TileType {Nothing, Gold, Upgrade, Berserk, Defense, Healing};
+enum WeaponType {Flail, Lunge, Straight};
 
 
 typedef struct
 {
     SDL_Surface* image;
+    int defense;
     bool isPlayer;
     bool hasMoved;
     int health;
@@ -36,6 +38,7 @@ typedef struct
 Tile map[3][3];
 Character player;
 int playerGold = 0;
+WeaponType playerWeaponType;
 int playerXPos;
 int playerYPos;
 time_t startTime;
@@ -48,6 +51,9 @@ SDL_Surface* nothingTile = NULL;
 SDL_Surface* upgradeTile = NULL;
 
 SDL_Surface* goldPileImage = NULL;
+SDL_Surface* rapierImage = NULL;
+SDL_Surface* shieldImage = NULL;
+SDL_Surface* whipImage = NULL;
 
 SDL_Surface* backgroundImage = NULL;
 SDL_Surface* healthImage = NULL;
@@ -94,6 +100,12 @@ void initTiles()
 
     goldPileImage = SDL_LoadBMP("GoldPile.bmp");
     setAlphaColor(goldPileImage, 255, 255, 255);
+    rapierImage = SDL_LoadBMP("Rapier.bmp");
+    setAlphaColor(rapierImage, 255, 255, 255);
+    shieldImage = SDL_LoadBMP("Shield.bmp");
+    setAlphaColor(shieldImage, 255, 255, 255);
+    whipImage = SDL_LoadBMP("Whip.bmp");
+    setAlphaColor(whipImage, 255, 255, 255);
 }
 
 void logInfo(char* info)
@@ -199,6 +211,7 @@ void activateTile()
                 if (rand() % 50 > timeInGame)
                 {
                     // Create a regular skeleton
+                    enemy->defense = 0;
                     enemy->health = 1;
                     enemy->image = skeletonImage;
                     enemy->isPlayer = false;
@@ -207,6 +220,7 @@ void activateTile()
                 else
                 {
                     // Create a Super Skeleton
+                    enemy->defense = 0;
                     enemy->health = 2;
                     enemy->image = superSkeletonImage;
                     enemy->isPlayer = false;
@@ -220,6 +234,25 @@ void activateTile()
 
         case TileType::Healing:
             spawnItem(Item::Health);
+            break;
+
+        case TileType::Upgrade:
+            Item newItem;
+            switch (rand() % 3)
+            {
+                case 0:
+                    newItem = Item::Rapier;
+                    break;
+
+                case 1:
+                    newItem = Item::Shield;
+                    break;
+
+                case 2:
+                    newItem = Item::Whip;
+                    break;
+            }
+            spawnItem(newItem);
             break;
     }
 }
@@ -285,6 +318,18 @@ void drawTile(int xIndex, int yIndex)
         case Item::Health:
             itemImage = healthImage;
             break;
+
+        case Item::Rapier:
+            itemImage = rapierImage;
+            break;
+
+        case Item::Shield:
+            itemImage = shieldImage;
+            break;
+
+        case Item::Whip:
+            itemImage = whipImage;
+            break;
     }
     SDL_BlitSurface(itemImage, NULL, SDL_GetWindowSurface(window), &tileRect);
 }
@@ -312,14 +357,32 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
         {
             if (newTile->item == Item::GoldPile)
             {
-                newTile->item = Item::None;
                 playerGold++;
             }
             else if (newTile->item == Item::Health)
             {
-                newTile->item = Item::None;
                 player.health++;
             }
+            else if (newTile->item == Item::Rapier)
+            {
+                player.defense = 0;
+                player.strength = 1;
+                playerWeaponType = WeaponType::Lunge;
+            }
+            else if (newTile->item == Item::Shield)
+            {
+                player.defense = 1;
+                player.strength = 1;
+                playerWeaponType = WeaponType::Straight;
+            }
+            else if (newTile->item == Item::Whip)
+            {
+                player.defense = 0;
+                player.strength = 1;
+                playerWeaponType = WeaponType::Flail;
+            }
+
+            newTile->item = Item::None;
         }
     }
 
@@ -334,13 +397,16 @@ int distance(int x1, int y1, int x2, int y2)
 
 void attackCharacter(Tile* attackerTile, Tile* victimTile)
 {
-    int damage = attackerTile->character->strength;
+    int damage = attackerTile->character->strength - victimTile->character->defense;
     if (victimTile->character->isPlayer)
     {
         if (victimTile->tileType == TileType::Berserk)
             damage++;
         else if (victimTile->tileType == TileType::Defense)
             damage--;
+
+        if (damage < 0)
+            damage = 0;
 
         player.health -= damage;
     }
@@ -600,11 +666,13 @@ int main()
 
     initTiles();
     font = TTF_OpenFont("cour.ttf", 12);
+    player.defense = 0;
     player.health = 3;
     player.image = hero;
     player.isPlayer = true;
     player.strength = 1;
     playerGold = 0;
+    playerWeaponType = WeaponType::Straight;
     playerXPos = 1;
     playerYPos = 1;
 
