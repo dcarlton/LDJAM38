@@ -13,7 +13,7 @@
 #include "SDL_ttf.h"
 
 
-enum Item {None, GoldPile, Rapier, Spear, SuperRapier, SuperSpear, SuperSword, SuperWhip, Whip};
+enum Item {None, GoldPile, Health, Rapier, Spear, SuperRapier, SuperSpear, SuperSword, SuperWhip, Whip};
 enum TileType {Nothing, Gold, Upgrade, Berserk, Defense, Healing};
 
 
@@ -21,6 +21,7 @@ typedef struct
 {
     SDL_Surface* image;
     bool isPlayer;
+    bool hasMoved;
     int health;
 } Character;
 
@@ -56,12 +57,25 @@ SDL_Window* window = NULL;
 
 TTF_Font* font = NULL;
 
+void setAlphaColor(SDL_Surface* surface, int r, int g, int b)
+{
+    SDL_Log("Setting the color key");
+    int color = SDL_MapRGB(surface->format, r, g, b);
+    int result = SDL_SetColorKey(surface, SDL_TRUE, color);
+    if (result != 0)
+    {
+        SDL_Log("Error setting the color key.");
+    }
+}
+
 void initTiles()
 {
     backgroundImage = SDL_LoadBMP("Background.bmp");
     heartImage = SDL_LoadBMP("Heart.bmp");
     hero = SDL_LoadBMP("Hero.bmp");
+    setAlphaColor(hero, 255, 255, 255);
     skeletonImage = SDL_LoadBMP("Skeleton.bmp");
+    setAlphaColor(skeletonImage, 255, 255, 255);
 
     berserkTile = SDL_LoadBMP("Berserk.bmp");
     defenseTile = SDL_LoadBMP("Defense.bmp");
@@ -71,6 +85,7 @@ void initTiles()
     upgradeTile = SDL_LoadBMP("Upgrade.bmp");
 
     goldPileImage = SDL_LoadBMP("GoldPile.bmp");
+    setAlphaColor(goldPileImage, 255, 255, 255);
 }
 
 void logInfo(char* info)
@@ -230,6 +245,7 @@ void drawTile(int xIndex, int yIndex)
     }
 
     // Draw the item on the tile
+    tileRect.h = 16;
     if (map[xIndex][yIndex].item != Item::None)
     {
         SDL_BlitSurface(goldPileImage, NULL, SDL_GetWindowSurface(window), &tileRect);
@@ -243,15 +259,30 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
         SDL_Log("Moving a nonexistant character.");
         return false;
     }
+    else if (oldTile->character->hasMoved)
+    {
+        SDL_Log("Moving a character that has already moved.");
+        return false;
+    }
 
     newTile->character = oldTile->character;
     oldTile->character = NULL;
 
-    if (newTile->item == Item::GoldPile && newTile->character->isPlayer)
+    if (newTile->character->isPlayer && newTile->item != Item::None)
     {
-        newTile->item = Item::None;
-        playerGold++;
+        if (newTile->item == Item::GoldPile)
+        {
+            newTile->item = Item::None;
+            playerGold++;
+        }
+        else if (newTile->item == Item::Health)
+        {
+            newTile->item = Item::None;
+            player.health++;
+        }
     }
+
+    newTile->character->hasMoved = true;
     return true;
 }
 
@@ -266,7 +297,7 @@ void moveEnemies()
     {
         for (int y = 0; y < 3; y++)
         {
-            if (map[x][y].character != NULL && !map[x][y].character->isPlayer)
+            if (map[x][y].character != NULL && !map[x][y].character->isPlayer && !map[x][y].character->hasMoved)
             {
                 // Can we attack the player?
                 if (distance(x, y, playerXPos, playerYPos) == 1)
@@ -285,16 +316,18 @@ void moveEnemies()
                     {
                         player.health--;
                     }
+
+                    map[x][y].character->hasMoved = true;
                 }
 
                 // Apologies: There's gotta be a better way to program AI movement. This code feels awful :(
-                if (x == playerXPos)
+                if (y == playerYPos)
                 {
                     // Same row
                     if (x > playerXPos) moveCharacter(&map[x][y], &map[x - 1][y]);
                     else moveCharacter(&map[x][y], &map[x + 1][y]);
                 }
-                else if (y == playerYPos)
+                else if (x == playerXPos)
                 {
                     // Same column
                     if (y > playerYPos) moveCharacter(&map[x][y], &map[x][y - 1]);
@@ -335,7 +368,7 @@ void gameLoop()
     }
     map[1][1].character = &player;
     startTime = time(NULL);
-    const int TIMER_LENGTH = 10;
+    const int TIMER_LENGTH = 60;
 
     SDL_Event event;
     while (true)
@@ -407,6 +440,16 @@ void gameLoop()
 
                 case SDL_QUIT:
                     return;
+            }
+        }
+
+        // Let everyone move again
+        for (int x = 0; x < 3; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                if (map[x][y].character != NULL)
+                    map[x][y].character->hasMoved = false;
             }
         }
 
