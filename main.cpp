@@ -7,6 +7,15 @@
 #include "SDL.h"
 
 
+enum TileType {Nothing};
+
+typedef struct
+{
+    TileType tileType;
+} Tile;
+
+Tile map[3][3];
+
 SDL_Surface* heartImage = NULL;
 SDL_Surface* nothingTile = NULL;
 SDL_Window* window = NULL;
@@ -32,7 +41,17 @@ void drawTile(int xIndex, int yIndex)
     SDL_Rect tileRect;
     tileRect.x = 32 + (xIndex * 32);
     tileRect.y = 64 + (yIndex * 32);
-    SDL_BlitSurface(nothingTile, NULL, SDL_GetWindowSurface(window), &tileRect);
+
+    SDL_Surface* tileSurface = NULL;
+    switch (map[xIndex][yIndex].tileType)
+    {
+        case TileType::Nothing:
+        default:
+            tileSurface = nothingTile;
+            break;
+    }
+
+    SDL_BlitSurface(tileSurface, NULL, SDL_GetWindowSurface(window), &tileRect);
 }
 
 void gameLoop()
@@ -40,6 +59,14 @@ void gameLoop()
     // TODO: Better title
     window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               160, 192, 0);
+
+    for (int x = 0; x < 3; x++)
+    {
+        for (int y = 0; y < 3; y++)
+        {
+            map[x][y].tileType = TileType::Nothing;
+        }
+    }
 
     SDL_Event test_event;
     while (true)
