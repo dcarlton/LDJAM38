@@ -48,6 +48,7 @@ SDL_Surface* goldPileImage = NULL;
 SDL_Surface* backgroundImage = NULL;
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
+SDL_Surface* skeletonImage = NULL;
 
 SDL_Window* window = NULL;
 
@@ -58,6 +59,7 @@ void initTiles()
     backgroundImage = SDL_LoadBMP("Background.bmp");
     heartImage = SDL_LoadBMP("Heart.bmp");
     hero = SDL_LoadBMP("Hero.bmp");
+    skeletonImage = SDL_LoadBMP("Skeleton.bmp");
 
     berserkTile = SDL_LoadBMP("Berserk.bmp");
     defenseTile = SDL_LoadBMP("Defense.bmp");
@@ -146,6 +148,28 @@ void activateTile()
                 SDL_Log("Giving gold");
                 int random = rand() % openTiles.size();
                 openTiles[random]->item = Item::GoldPile;
+            }
+
+            // Spawn an enemy in a different tile
+            openTiles.clear();
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    if (map[x][y].character == NULL)
+                        openTiles.push_back(&map[x][y]);
+                }
+            }
+
+            if (openTiles.size() > 0)
+            {
+                SDL_Log("Adding an enemy");
+                Character* enemy = new Character;
+                enemy->health = 1;
+                enemy->image = skeletonImage;
+
+                int random = rand() % openTiles.size();
+                openTiles[random]->character = enemy;
             }
             break;
     }
