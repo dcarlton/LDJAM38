@@ -212,6 +212,12 @@ bool movePlayer(Tile* oldTile, Tile* newTile)
 
     newTile->character = oldTile->character;
     oldTile->character = NULL;
+
+    if (newTile->item == Item::GoldPile)
+    {
+        newTile->item = Item::None;
+        playerGold++;
+    }
     return true;
 }
 
