@@ -20,32 +20,34 @@ void logInfo(char* info)
     logFile.clear();
 }
 
-int main()
+void gameLoop()
 {
-    std::remove("log.txt");
-
-    SDL_Log("Initializing SDL");
-    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
-    SDL_Log("Finished initializing SDL");
-
     // TODO: Better title
     SDL_Window* window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           160, 192, 0);
 
-    /*SDL_Event test_event;
+    SDL_Event test_event;
     while (true)
     {
         while (SDL_PollEvent(&test_event))
         {
             if (test_event.type == SDL_KEYDOWN && test_event.key.keysym.sym == SDLK_ESCAPE)
             {
-                SDL_Quit();
-                return 0;
+                return;
             }
         }
 
         SDL_UpdateWindowSurface(window);
-    }*/
+    }
+}
+
+int main()
+{
+    SDL_Log("Initializing SDL");
+    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
+    SDL_Log("Finished initializing SDL");
+
+    gameLoop();
 
     SDL_Log("Shutting down");
     SDL_Quit();
