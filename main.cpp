@@ -23,6 +23,8 @@ typedef struct
 
 Tile map[3][3];
 Character player;
+int playerXPos;
+int playerYPos;
 
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
@@ -71,6 +73,19 @@ void drawTile(int xIndex, int yIndex)
     }
 }
 
+bool movePlayer(Tile* oldTile, Tile* newTile)
+{
+    if (oldTile->character != &player)
+    {
+        SDL_Log("Moving the player out of a tile where they aren't located.");
+        return false;
+    }
+
+    newTile->character = oldTile->character;
+    oldTile->character = NULL;
+    return true;
+}
+
 void gameLoop()
 {
     // TODO: Better title
@@ -85,20 +100,58 @@ void gameLoop()
             map[x][y].character = NULL;
         }
     }
-    map[0][0].character = &player;
+    map[1][1].character = &player;
 
-    SDL_Event test_event;
+    SDL_Event event;
     while (true)
     {
-        while (SDL_PollEvent(&test_event))
+        while (SDL_PollEvent(&event))
         {
-            if (test_event.type == SDL_KEYDOWN && test_event.key.keysym.sym == SDLK_ESCAPE)
+            switch (event.type)
             {
-                return;
-            }
-            else if (test_event.type == SDL_QUIT)
-            {
-                return;
+                case SDL_KEYDOWN:
+                    switch (event.key.keysym.sym)
+                    {
+                        // TODO: Don't kill other characters by walking on them.
+                        case SDLK_DOWN:
+                            if (playerYPos < 2)
+                            {
+                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
+                                    playerYPos++;
+                            }
+                            break;
+
+                        case SDLK_LEFT:
+                            if (playerXPos > 0)
+                            {
+                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
+                                    playerXPos--;
+                            }
+                            break;
+                        
+                        case SDLK_RIGHT:
+                            if (playerXPos < 2)
+                            {
+                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
+                                    playerXPos++;
+                            }
+                            break;
+
+                        case SDLK_UP:
+                            if (playerYPos > 0)
+                            {
+                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
+                                    playerYPos--;
+                            }
+                            break;
+
+                        case SDLK_ESCAPE:
+                            return;
+                    }
+                    break;
+
+                case SDL_QUIT:
+                    return;
             }
         }
 
@@ -131,6 +184,8 @@ int main()
     initTiles();
     player.health = 10;
     player.image = hero;
+    playerXPos = 1;
+    playerYPos = 1;
     SDL_Log("Finished initializing SDL");
 
     gameLoop();
