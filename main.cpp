@@ -236,18 +236,18 @@ void drawTile(int xIndex, int yIndex)
     }
 }
 
-bool movePlayer(Tile* oldTile, Tile* newTile)
+bool moveCharacter(Tile* oldTile, Tile* newTile)
 {
-    if (oldTile->character != &player)
+    if (oldTile->character == NULL)
     {
-        SDL_Log("Moving the player out of a tile where they aren't located.");
+        SDL_Log("Moving a nonexistant character.");
         return false;
     }
 
     newTile->character = oldTile->character;
     oldTile->character = NULL;
 
-    if (newTile->item == Item::GoldPile)
+    if (newTile->item == Item::GoldPile && newTile->character->isPlayer)
     {
         newTile->item = Item::None;
         playerGold++;
@@ -268,10 +268,10 @@ void moveEnemies()
         {
             if (map[x][y].character != NULL && !map[x][y].character->isPlayer)
             {
-                // We found an enemy.
-                // Attack!
+                // Can we attack the player?
                 if (distance(x, y, playerXPos, playerYPos) == 1)
                 {
+                    // Yes! Attack!
                     if (map[playerXPos][playerYPos].tileType == TileType::Defense)
                     {
                         // The player takes one less damage, so they're safe!
@@ -284,6 +284,35 @@ void moveEnemies()
                     else
                     {
                         player.health--;
+                    }
+                }
+
+                // Apologies: There's gotta be a better way to program AI movement. This code feels awful :(
+                if (x == playerXPos)
+                {
+                    // Same row
+                    if (x > playerXPos) moveCharacter(&map[x][y], &map[x - 1][y]);
+                    else moveCharacter(&map[x][y], &map[x + 1][y]);
+                }
+                else if (y == playerYPos)
+                {
+                    // Same column
+                    if (y > playerYPos) moveCharacter(&map[x][y], &map[x][y - 1]);
+                    else moveCharacter(&map[x][y], &map[x][y + 1]);
+                }
+                else
+                {
+                    // They're not in a straight line.
+                    bool moveHorizontal = (rand() % 2) == 0;
+                    if (moveHorizontal)
+                    {
+                        if (x > playerXPos) moveCharacter(&map[x][y], &map[x - 1][y]);
+                        else moveCharacter(&map[x][y], &map[x + 1][y]);
+                    }
+                    else
+                    {
+                        if (y > playerYPos) moveCharacter(&map[x][y], &map[x][y - 1]);
+                        else moveCharacter(&map[x][y], &map[x][y + 1]);
                     }
                 }
             }
@@ -326,7 +355,7 @@ void gameLoop()
                         case SDLK_DOWN:
                             if (playerYPos < 2)
                             {
-                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
+                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
                                 {
                                     playerYPos++;
                                     moveEnemies();
@@ -338,7 +367,7 @@ void gameLoop()
                         case SDLK_LEFT:
                             if (playerXPos > 0)
                             {
-                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
+                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
                                 {
                                     playerXPos--;
                                     moveEnemies();
@@ -350,7 +379,7 @@ void gameLoop()
                         case SDLK_RIGHT:
                             if (playerXPos < 2)
                             {
-                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
+                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
                                 {
                                     playerXPos++;
                                     moveEnemies();
@@ -362,7 +391,7 @@ void gameLoop()
                         case SDLK_UP:
                             if (playerYPos > 0)
                             {
-                                if (movePlayer(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
+                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
                                 {
                                     playerYPos--;
                                     moveEnemies();
