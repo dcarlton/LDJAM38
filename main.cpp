@@ -101,6 +101,11 @@ Tile getRandomTile()
     return tile;
 }
 
+TileType getRandomTileType()
+{
+    return getRandomTile().tileType;
+}
+
 void drawTile(int xIndex, int yIndex)
 {
     // Draw the type of tile
@@ -161,6 +166,7 @@ bool movePlayer(Tile* oldTile, Tile* newTile)
 
     newTile->character = oldTile->character;
     oldTile->character = NULL;
+    newTile->tileType = getRandomTileType();
     return true;
 }
 
