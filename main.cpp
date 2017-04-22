@@ -6,11 +6,6 @@
 
 #include "SDL.h"
 
-namespace
-{
-    std::ofstream logFile;
-}
-
 void logInfo(char* info)
 {
     std::ofstream logFile;
@@ -22,6 +17,8 @@ void logInfo(char* info)
 
 void gameLoop()
 {
+    SDL_Surface* nothingTile = SDL_LoadBMP("Nothing.bmp");
+
     // TODO: Better title
     SDL_Window* window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           160, 192, 0);
@@ -35,7 +32,19 @@ void gameLoop()
             {
                 return;
             }
+            else if (test_event.type == SDL_QUIT)
+            {
+                return;
+            }
         }
+
+        // Draw stuff
+        int xIndex = 2;
+        int yIndex = 1;
+        SDL_Rect tileRect;
+        tileRect.x = 32 + (xIndex * 32);
+        tileRect.y = 64 + (yIndex * 32);
+        SDL_BlitSurface(nothingTile, NULL, SDL_GetWindowSurface(window), &tileRect);
 
         SDL_UpdateWindowSurface(window);
     }
