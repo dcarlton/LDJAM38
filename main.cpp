@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include "SDL.h"
+#include "SDL_ttf.h"
 
 
 enum Item {None, GoldPile, Rapier, Spear, SuperRapier, SuperSpear, SuperSword, SuperWhip, Whip};
@@ -47,6 +48,8 @@ SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
 
 SDL_Window* window = NULL;
+
+TTF_Font* font = NULL;
 
 void initTiles()
 {
@@ -325,6 +328,13 @@ void gameLoop()
             SDL_BlitSurface(heartImage, NULL, SDL_GetWindowSurface(window), &tileRect);           
         }
 
+        SDL_Color white = {255, 255, 255, 0};
+        SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Hoi! I'm Temmie!", white);
+        SDL_Rect textRect;
+        textRect.x = 100;
+        textRect.y = 0;
+        SDL_BlitSurface(textSurface, NULL, SDL_GetWindowSurface(window), &textRect);
+
         SDL_UpdateWindowSurface(window);
     } // End of the endless while loop
 }
@@ -334,17 +344,21 @@ int main()
     srand(time(NULL));
     SDL_Log("Initializing SDL");
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
+    TTF_Init();
+    SDL_Log("Finished initializing SDL");
+
     initTiles();
+    font = TTF_OpenFont("cour.ttf", 12);
     player.health = 3;
     player.image = hero;
     playerGold = 0;
     playerXPos = 1;
     playerYPos = 1;
-    SDL_Log("Finished initializing SDL");
 
     gameLoop();
 
     SDL_Log("Shutting down");
+    TTF_Quit();
     SDL_Quit();
     SDL_Log("Smell ya later!");
     return 0;
