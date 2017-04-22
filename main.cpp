@@ -53,6 +53,10 @@ SDL_Surface* upgradeTile = NULL;
 SDL_Surface* goldPileImage = NULL;
 SDL_Surface* rapierImage = NULL;
 SDL_Surface* shieldImage = NULL;
+SDL_Surface* superRapierImage = NULL;
+SDL_Surface* superShieldImage = NULL;
+SDL_Surface* superSwordImage = NULL;
+SDL_Surface* superWhipImage = NULL;
 SDL_Surface* whipImage = NULL;
 
 SDL_Surface* backgroundImage = NULL;
@@ -104,6 +108,14 @@ void initTiles()
     setAlphaColor(rapierImage, 255, 255, 255);
     shieldImage = SDL_LoadBMP("Shield.bmp");
     setAlphaColor(shieldImage, 255, 255, 255);
+    superRapierImage = SDL_LoadBMP("SuperRapier.bmp");
+    setAlphaColor(superRapierImage, 255, 255, 255);
+    superShieldImage = SDL_LoadBMP("SuperShield.bmp");
+    setAlphaColor(superShieldImage, 255, 255, 255);
+    superSwordImage = SDL_LoadBMP("SuperSword.bmp");
+    setAlphaColor(superSwordImage, 255, 255, 255);
+    superWhipImage = SDL_LoadBMP("SuperWhip.bmp");
+    setAlphaColor(superWhipImage, 255, 255, 255);
     whipImage = SDL_LoadBMP("Whip.bmp");
     setAlphaColor(whipImage, 255, 255, 255);
 }
@@ -238,7 +250,16 @@ void activateTile()
 
         case TileType::Upgrade:
             Item newItem;
-            switch (rand() % 3)
+            int random;
+            int timeSinceStart = difftime(time(NULL), startTime);
+            if (timeSinceStart < 20)
+                random = rand() % 3;
+            else if (timeSinceStart < 40)
+                random = rand() % 7;
+            else
+                random = (rand() % 3) + 4;
+
+            switch (random)
             {
                 case 0:
                     newItem = Item::Rapier;
@@ -250,6 +271,22 @@ void activateTile()
 
                 case 2:
                     newItem = Item::Whip;
+                    break;
+                
+                case 3:
+                    newItem = Item::SuperSword;
+                    break;
+
+                case 4:
+                    newItem = Item::SuperShield;
+                    break;
+
+                case 5:
+                    newItem = Item::SuperRapier;
+                    break;
+
+                case 6:
+                    newItem = Item::SuperWhip;
                     break;
             }
             spawnItem(newItem);
@@ -327,6 +364,22 @@ void drawTile(int xIndex, int yIndex)
             itemImage = shieldImage;
             break;
 
+        case Item::SuperRapier:
+            itemImage = superRapierImage;
+            break;
+
+        case Item::SuperShield:
+            itemImage = superShieldImage;
+            break;
+
+        case Item::SuperSword:
+            itemImage = superSwordImage;
+            break;
+
+        case Item::SuperWhip:
+            itemImage = superWhipImage;
+            break;
+
         case Item::Whip:
             itemImage = whipImage;
             break;
@@ -379,6 +432,30 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
             {
                 player.defense = 0;
                 player.strength = 1;
+                playerWeaponType = WeaponType::Flail;
+            }
+            else if (newTile->item == Item::SuperRapier)
+            {
+                player.defense = 0;
+                player.strength = 2;
+                playerWeaponType = WeaponType::Lunge;
+            }
+            else if (newTile->item == Item::SuperShield)
+            {
+                player.defense = 1;
+                player.strength = 2;
+                playerWeaponType = WeaponType::Straight;
+            }
+            else if (newTile->item == Item::SuperSword)
+            {
+                player.defense = 0;
+                player.strength = 2;
+                playerWeaponType = WeaponType::Straight;
+            }
+            else if (newTile->item == Item::SuperWhip)
+            {
+                player.defense = 0;
+                player.strength = 2;
                 playerWeaponType = WeaponType::Flail;
             }
 
