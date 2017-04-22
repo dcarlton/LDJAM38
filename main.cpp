@@ -11,18 +11,28 @@ enum TileType {Nothing};
 
 typedef struct
 {
+    SDL_Surface* image;
+    int health;
+} Character;
+
+typedef struct
+{
     TileType tileType;
+    Character* character;
 } Tile;
 
 Tile map[3][3];
+Character player;
 
 SDL_Surface* heartImage = NULL;
+SDL_Surface* hero = NULL;
 SDL_Surface* nothingTile = NULL;
 SDL_Window* window = NULL;
 
 void initTiles()
 {
     heartImage = SDL_LoadBMP("Heart.bmp");
+    hero = SDL_LoadBMP("Hero.bmp");
     nothingTile = SDL_LoadBMP("Nothing.bmp");
 }
 
@@ -37,7 +47,7 @@ void logInfo(char* info)
 
 void drawTile(int xIndex, int yIndex)
 {
-    // Draw stuff
+    // Draw the type of tile
     SDL_Rect tileRect;
     tileRect.x = 32 + (xIndex * 32);
     tileRect.y = 64 + (yIndex * 32);
@@ -52,6 +62,13 @@ void drawTile(int xIndex, int yIndex)
     }
 
     SDL_BlitSurface(tileSurface, NULL, SDL_GetWindowSurface(window), &tileRect);
+
+
+    // Draw the character on the tile
+    if (map[xIndex][yIndex].character != NULL)
+    {
+        SDL_BlitSurface(map[xIndex][yIndex].character->image, NULL, SDL_GetWindowSurface(window), &tileRect);
+    }
 }
 
 void gameLoop()
@@ -65,8 +82,10 @@ void gameLoop()
         for (int y = 0; y < 3; y++)
         {
             map[x][y].tileType = TileType::Nothing;
+            map[x][y].character = NULL;
         }
     }
+    map[0][0].character = &player;
 
     SDL_Event test_event;
     while (true)
@@ -92,7 +111,7 @@ void gameLoop()
             }
         }
 
-        int health = 10;
+        int health = player.health;
         for (; health > 0; health--)
         {
             SDL_Rect tileRect;
@@ -110,6 +129,8 @@ int main()
     SDL_Log("Initializing SDL");
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
     initTiles();
+    player.health = 10;
+    player.image = hero;
     SDL_Log("Finished initializing SDL");
 
     gameLoop();
