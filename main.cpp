@@ -7,11 +7,13 @@
 #include "SDL.h"
 
 
+SDL_Surface* heartImage = NULL;
 SDL_Surface* nothingTile = NULL;
 SDL_Window* window = NULL;
 
 void initTiles()
 {
+    heartImage = SDL_LoadBMP("Heart.bmp");
     nothingTile = SDL_LoadBMP("Nothing.bmp");
 }
 
@@ -31,8 +33,6 @@ void drawTile(int xIndex, int yIndex)
     tileRect.x = 32 + (xIndex * 32);
     tileRect.y = 64 + (yIndex * 32);
     SDL_BlitSurface(nothingTile, NULL, SDL_GetWindowSurface(window), &tileRect);
-
-    SDL_UpdateWindowSurface(window);
 }
 
 void gameLoop()
@@ -57,7 +57,22 @@ void gameLoop()
         }
 
         // Draw stuff
-        drawTile(2, 1);
+        for (int x = 0; x < 3; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                drawTile(x, y);
+            }
+        }
+
+        int health = 10;
+        for (; health > 0; health--)
+        {
+            SDL_Rect tileRect;
+            tileRect.x = (health - 1) * 10;
+            tileRect.y = 0;
+            SDL_BlitSurface(heartImage, NULL, SDL_GetWindowSurface(window), &tileRect);           
+        }
 
         SDL_UpdateWindowSurface(window);
     }
