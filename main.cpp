@@ -49,6 +49,7 @@ SDL_Surface* upgradeTile = NULL;
 SDL_Surface* goldPileImage = NULL;
 
 SDL_Surface* backgroundImage = NULL;
+SDL_Surface* healthImage = NULL;
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
 SDL_Surface* skeletonImage = NULL;
@@ -71,7 +72,10 @@ void setAlphaColor(SDL_Surface* surface, int r, int g, int b)
 void initTiles()
 {
     backgroundImage = SDL_LoadBMP("Background.bmp");
+    healthImage = SDL_LoadBMP("Health.bmp");
+    setAlphaColor(healthImage, 255, 255, 255);
     heartImage = SDL_LoadBMP("Heart.bmp");
+    setAlphaColor(heartImage, 255, 255, 255);
     hero = SDL_LoadBMP("Hero.bmp");
     setAlphaColor(hero, 255, 255, 255);
     skeletonImage = SDL_LoadBMP("Skeleton.bmp");
@@ -142,33 +146,37 @@ TileType getRandomTileType()
     return getRandomTile().tileType;
 }
 
+void spawnItem(Item item)
+{
+    std::vector<Tile*> openTiles;
+    for (int x = 0; x < 3; x++)
+    {
+        for (int y = 0; y < 3; y++)
+        {
+            if (map[x][y].item == Item::None && !(x == playerXPos && y == playerYPos))
+                openTiles.push_back(&map[x][y]);
+        }
+    }
+
+    if (openTiles.size() > 0)
+    {
+        int random = rand() % openTiles.size();
+        openTiles[random]->item = item;
+    }
+}
+
 // I'm assuming the player's position is correctly updated
 // before this is called.
 // Activates the tile the player's standing on.
 void activateTile()
 {
+    std::vector<Tile*> openTiles;
     switch (map[playerXPos][playerYPos].tileType)
     {
         case TileType::Gold:
-            std::vector<Tile*> openTiles;
-            for (int x = 0; x < 3; x++)
-            {
-                for (int y = 0; y < 3; y++)
-                {
-                    if (map[x][y].item == Item::None && !(x == playerXPos && y == playerYPos))
-                        openTiles.push_back(&map[x][y]);
-                }
-            }
-
-            if (openTiles.size() > 0)
-            {
-                SDL_Log("Giving gold");
-                int random = rand() % openTiles.size();
-                openTiles[random]->item = Item::GoldPile;
-            }
+            spawnItem(Item::GoldPile);
 
             // Spawn an enemy in a different tile
-            openTiles.clear();
             for (int x = 0; x < 3; x++)
             {
                 for (int y = 0; y < 3; y++)
@@ -189,6 +197,10 @@ void activateTile()
                 int random = rand() % openTiles.size();
                 openTiles[random]->character = enemy;
             }
+            break;
+
+        case TileType::Healing:
+            spawnItem(Item::Health);
             break;
     }
 
@@ -246,10 +258,18 @@ void drawTile(int xIndex, int yIndex)
 
     // Draw the item on the tile
     tileRect.h = 16;
-    if (map[xIndex][yIndex].item != Item::None)
+    SDL_Surface* itemImage = NULL;
+    switch (map[xIndex][yIndex].item)
     {
-        SDL_BlitSurface(goldPileImage, NULL, SDL_GetWindowSurface(window), &tileRect);
+        case Item::GoldPile:
+            itemImage = goldPileImage;
+            break;
+
+        case Item::Health:
+            itemImage = healthImage;
+            break;
     }
+    SDL_BlitSurface(itemImage, NULL, SDL_GetWindowSurface(window), &tileRect);
 }
 
 bool moveCharacter(Tile* oldTile, Tile* newTile)
