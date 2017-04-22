@@ -2,12 +2,14 @@
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <windows.h>
 
 #include "SDL.h"
 
 
-enum TileType {Nothing};
+enum TileType {Nothing = 0, Gold, Upgrade, Berserk, Defense, Healing};
 
 typedef struct
 {
@@ -26,16 +28,29 @@ Character player;
 int playerXPos;
 int playerYPos;
 
+SDL_Surface* berserkTile = NULL;
+SDL_Surface* defenseTile = NULL;
+SDL_Surface* goldTile = NULL;
+SDL_Surface* healingTile = NULL;
+SDL_Surface* nothingTile = NULL;
+SDL_Surface* upgradeTile = NULL;
+
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
-SDL_Surface* nothingTile = NULL;
+
 SDL_Window* window = NULL;
 
 void initTiles()
 {
     heartImage = SDL_LoadBMP("Heart.bmp");
     hero = SDL_LoadBMP("Hero.bmp");
+
+    berserkTile = SDL_LoadBMP("Berserk.bmp");
+    defenseTile = SDL_LoadBMP("Defense.bmp");
+    goldTile = SDL_LoadBMP("Gold.bmp");
+    healingTile = SDL_LoadBMP("Healing.bmp");
     nothingTile = SDL_LoadBMP("Nothing.bmp");
+    upgradeTile = SDL_LoadBMP("Upgrade.bmp");
 }
 
 void logInfo(char* info)
@@ -45,6 +60,45 @@ void logInfo(char* info)
     logFile << info << "\n";
     logFile.close();
     logFile.clear();
+}
+
+Tile getRandomTile()
+{
+    Tile tile;
+    tile.character = NULL;
+    
+    switch (rand() % 6)
+    {
+        case 0:
+            tile.tileType = TileType::Berserk;
+            break;
+
+        case 1:
+            tile.tileType = TileType::Defense;
+            break;
+
+        case 2:
+            tile.tileType = TileType::Gold;
+            break;
+
+        case 3:
+            tile.tileType = TileType::Healing;
+            break;
+        
+        case 4:
+            tile.tileType = TileType::Nothing;
+            break;
+
+        case 5:
+            tile.tileType = TileType::Upgrade;
+            break;
+
+        default:
+            SDL_Log("Whelp, 0-5 doesn't equal any number 0-5. I broke math.");
+            tile.tileType = TileType::Nothing;
+            break;
+    }
+    return tile;
 }
 
 void drawTile(int xIndex, int yIndex)
@@ -57,8 +111,32 @@ void drawTile(int xIndex, int yIndex)
     SDL_Surface* tileSurface = NULL;
     switch (map[xIndex][yIndex].tileType)
     {
+        case TileType::Berserk:
+            tileSurface = berserkTile;
+            break;
+
+        case TileType::Defense:
+            tileSurface = defenseTile;
+            break;
+
+        case TileType::Gold:
+            tileSurface = goldTile;
+            break;
+
+        case TileType::Healing:
+            tileSurface = healingTile;
+            break;
+
         case TileType::Nothing:
+            tileSurface = nothingTile;
+            break;
+
+        case TileType::Upgrade:
+            tileSurface = upgradeTile;
+            break;
+
         default:
+            SDL_Log("Unknown tile type.");
             tileSurface = nothingTile;
             break;
     }
@@ -96,8 +174,7 @@ void gameLoop()
     {
         for (int y = 0; y < 3; y++)
         {
-            map[x][y].tileType = TileType::Nothing;
-            map[x][y].character = NULL;
+            map[x][y] = getRandomTile();
         }
     }
     map[1][1].character = &player;
@@ -164,6 +241,7 @@ void gameLoop()
             }
         }
 
+        // TODO: Max health.
         int health = player.health;
         for (; health > 0; health--)
         {
@@ -179,10 +257,11 @@ void gameLoop()
 
 int main()
 {
+    srand(time(NULL));
     SDL_Log("Initializing SDL");
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
     initTiles();
-    player.health = 10;
+    player.health = 3;
     player.image = hero;
     playerXPos = 1;
     playerYPos = 1;
