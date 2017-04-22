@@ -23,6 +23,7 @@ typedef struct
     bool isPlayer;
     bool hasMoved;
     int health;
+    int strength;
 } Character;
 
 typedef struct
@@ -53,6 +54,7 @@ SDL_Surface* healthImage = NULL;
 SDL_Surface* heartImage = NULL;
 SDL_Surface* hero = NULL;
 SDL_Surface* skeletonImage = NULL;
+SDL_Surface* superSkeletonImage = NULL;
 
 SDL_Window* window = NULL;
 
@@ -80,6 +82,8 @@ void initTiles()
     setAlphaColor(hero, 255, 255, 255);
     skeletonImage = SDL_LoadBMP("Skeleton.bmp");
     setAlphaColor(skeletonImage, 255, 255, 255);
+    superSkeletonImage = SDL_LoadBMP("SuperSkeleton.bmp");
+    setAlphaColor(superSkeletonImage, 255, 255, 255);
 
     berserkTile = SDL_LoadBMP("Berserk.bmp");
     defenseTile = SDL_LoadBMP("Defense.bmp");
@@ -190,9 +194,24 @@ void activateTile()
             {
                 SDL_Log("Adding an enemy");
                 Character* enemy = new Character;
-                enemy->health = 1;
-                enemy->image = skeletonImage;
-                enemy->isPlayer = false;
+                // NOTE: Would be better if the hard-coded 50 seconds was based on a percentage of the time limit.
+                int timeInGame = difftime(time(NULL), startTime);
+                if (rand() % 50 > timeInGame)
+                {
+                    // Create a regular skeleton
+                    enemy->health = 1;
+                    enemy->image = skeletonImage;
+                    enemy->isPlayer = false;
+                    enemy->strength = 1;
+                }
+                else
+                {
+                    // Create a Super Skeleton
+                    enemy->health = 2;
+                    enemy->image = superSkeletonImage;
+                    enemy->isPlayer = false;
+                    enemy->strength = 2;
+                }
 
                 int random = rand() % openTiles.size();
                 openTiles[random]->character = enemy;
@@ -313,6 +332,28 @@ int distance(int x1, int y1, int x2, int y2)
     return std::abs((int)(x1 - x2)) + std::abs((int)(y1 - y2));
 }
 
+void attackCharacter(Tile* attackerTile, Tile* victimTile)
+{
+    int damage = attackerTile->character->strength;
+    if (victimTile->character->isPlayer)
+    {
+        if (victimTile->tileType == TileType::Berserk)
+            damage++;
+        else if (victimTile->tileType == TileType::Defense)
+            damage--;
+
+        player.health -= damage;
+    }
+    else
+    {
+        victimTile->character->health -= damage;
+        if (victimTile->character->health <= 0)
+        {
+            victimTile->character = NULL;
+        }
+    }
+}
+
 void moveEnemies()
 {
     for (int x = 0; x < 3; x++)
@@ -325,20 +366,7 @@ void moveEnemies()
                 if (distance(x, y, playerXPos, playerYPos) == 1)
                 {
                     // Yes! Attack!
-                    if (map[playerXPos][playerYPos].tileType == TileType::Defense)
-                    {
-                        // The player takes one less damage, so they're safe!
-                    }
-                    else if (map[playerXPos][playerYPos].tileType == TileType::Berserk)
-                    {
-                        // One extra damage
-                        player.health -= 2;
-                    }
-                    else
-                    {
-                        player.health--;
-                    }
-
+                    attackCharacter(&map[x][y], &map[playerXPos][playerYPos]);
                     map[x][y].character->hasMoved = true;
                 }
 
@@ -410,7 +438,12 @@ void gameLoop()
                         case SDLK_DOWN:
                             if (playerYPos < 2)
                             {
-                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
+                                if (map[playerXPos][playerYPos + 1].character != NULL)
+                                {
+                                    attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]);
+                                    moveEnemies();
+                                }
+                                else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
                                 {
                                     playerYPos++;
                                     moveEnemies();
@@ -422,7 +455,12 @@ void gameLoop()
                         case SDLK_LEFT:
                             if (playerXPos > 0)
                             {
-                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
+                                if (map[playerXPos - 1][playerYPos].character != NULL)
+                                {
+                                    attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]);
+                                    moveEnemies();
+                                }
+                                else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
                                 {
                                     playerXPos--;
                                     moveEnemies();
@@ -434,7 +472,12 @@ void gameLoop()
                         case SDLK_RIGHT:
                             if (playerXPos < 2)
                             {
-                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
+                                if (map[playerXPos + 1][playerYPos].character != NULL)
+                                {
+                                    attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]);
+                                    moveEnemies();
+                                }
+                                else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
                                 {
                                     playerXPos++;
                                     moveEnemies();
@@ -446,7 +489,12 @@ void gameLoop()
                         case SDLK_UP:
                             if (playerYPos > 0)
                             {
-                                if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
+                                if (map[playerXPos][playerYPos - 1].character != NULL)
+                                {
+                                    attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]);
+                                    moveEnemies();
+                                }
+                                else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
                                 {
                                     playerYPos--;
                                     moveEnemies();
@@ -555,6 +603,7 @@ int main()
     player.health = 3;
     player.image = hero;
     player.isPlayer = true;
+    player.strength = 1;
     playerGold = 0;
     playerXPos = 1;
     playerYPos = 1;
