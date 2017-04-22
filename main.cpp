@@ -272,7 +272,19 @@ void moveEnemies()
                 // Attack!
                 if (distance(x, y, playerXPos, playerYPos) == 1)
                 {
-                    player.health--;
+                    if (map[playerXPos][playerYPos].tileType == TileType::Defense)
+                    {
+                        // The player takes one less damage, so they're safe!
+                    }
+                    else if (map[playerXPos][playerYPos].tileType == TileType::Berserk)
+                    {
+                        // One extra damage
+                        player.health -= 2;
+                    }
+                    else
+                    {
+                        player.health--;
+                    }
                 }
             }
         }
