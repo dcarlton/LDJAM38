@@ -507,8 +507,40 @@ void gameLoop()
                         case SDLK_DOWN:
                             if (playerYPos < 2)
                             {
-                                if (map[playerXPos][playerYPos + 1].character != NULL)
+                                if (playerWeaponType == WeaponType::Flail)
                                 {
+                                    // Whip attack
+                                    bool attacking = false;
+                                    if (map[playerXPos][playerYPos + 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]);
+                                    }
+                                    if (playerXPos - 1 >= 0 && map[playerXPos - 1][playerYPos + 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos + 1]);
+                                    }
+                                    if (playerXPos + 1 < 3 && map[playerXPos + 1][playerYPos + 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos + 1]);
+                                    }
+
+                                    if (attacking)
+                                    {
+                                        moveEnemies();
+                                    }
+                                    else if (!attacking && moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
+                                    {
+                                        playerYPos++;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                }
+                                else if (map[playerXPos][playerYPos + 1].character != NULL)
+                                {
+                                    // Standard attack
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]);
                                     if (playerWeaponType == WeaponType::Lunge && map[playerXPos][playerYPos + 1].character == NULL)
                                     {
@@ -524,6 +556,7 @@ void gameLoop()
                                 }
                                 else if (moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos + 1]))
                                 {
+                                    // There's no one to attack and we don't have a whip.
                                     playerYPos++;
                                     moveEnemies();
                                     activateTile();
@@ -534,7 +567,38 @@ void gameLoop()
                         case SDLK_LEFT:
                             if (playerXPos > 0)
                             {
-                                if (map[playerXPos - 1][playerYPos].character != NULL)
+                                if (playerWeaponType == WeaponType::Flail)
+                                {
+                                    // Whip attack
+                                    bool attacking = false;
+                                    if (map[playerXPos - 1][playerYPos].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]);
+                                    }
+                                    if (playerYPos - 1 >= 0 && map[playerXPos - 1][playerYPos - 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos - 1]);
+                                    }
+                                    if (playerYPos + 1 < 3 && map[playerXPos - 1][playerYPos + 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos + 1]);
+                                    }
+
+                                    if (attacking)
+                                    {
+                                        moveEnemies();
+                                    }
+                                    else if (!attacking && moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]))
+                                    {
+                                        playerXPos--;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                }
+                                else if (map[playerXPos - 1][playerYPos].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos]);
                                     if (playerWeaponType == WeaponType::Lunge && map[playerXPos - 1][playerYPos].character == NULL)
@@ -561,7 +625,38 @@ void gameLoop()
                         case SDLK_RIGHT:
                             if (playerXPos < 2)
                             {
-                                if (map[playerXPos + 1][playerYPos].character != NULL)
+                                if (playerWeaponType == WeaponType::Flail)
+                                {
+                                    // Whip attack
+                                    bool attacking = false;
+                                    if (map[playerXPos + 1][playerYPos].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]);
+                                    }
+                                    if (playerYPos - 1 >= 0 && map[playerXPos + 1][playerYPos - 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos - 1]);
+                                    }
+                                    if (playerYPos + 1 < 3 && map[playerXPos + 1][playerYPos + 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos + 1]);
+                                    }
+
+                                    if (attacking)
+                                    {
+                                        moveEnemies();
+                                    }
+                                    else if (!attacking && moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]))
+                                    {
+                                        playerXPos++;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                }
+                                else if (map[playerXPos + 1][playerYPos].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos]);
                                     if (playerWeaponType == WeaponType::Lunge && map[playerXPos + 1][playerYPos].character == NULL)
@@ -588,7 +683,38 @@ void gameLoop()
                         case SDLK_UP:
                             if (playerYPos > 0)
                             {
-                                if (map[playerXPos][playerYPos - 1].character != NULL)
+                                if (playerWeaponType == WeaponType::Flail)
+                                {
+                                    // Whip attack
+                                    bool attacking = false;
+                                    if (map[playerXPos][playerYPos - 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]);
+                                    }
+                                    if (playerXPos - 1 >= 0 && map[playerXPos - 1][playerYPos - 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos - 1][playerYPos - 1]);
+                                    }
+                                    if (playerXPos + 1 < 3 && map[playerXPos + 1][playerYPos - 1].character != NULL)
+                                    {
+                                        attacking = true;
+                                        attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos + 1][playerYPos - 1]);
+                                    }
+
+                                    if (attacking)
+                                    {
+                                        moveEnemies();
+                                    }
+                                    else if (!attacking && moveCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]))
+                                    {
+                                        playerYPos--;
+                                        moveEnemies();
+                                        activateTile();
+                                    }
+                                }
+                                else if (map[playerXPos][playerYPos - 1].character != NULL)
                                 {
                                     attackCharacter(&map[playerXPos][playerYPos], &map[playerXPos][playerYPos - 1]);
                                     if (playerWeaponType == WeaponType::Lunge && map[playerXPos][playerYPos - 1].character == NULL)
