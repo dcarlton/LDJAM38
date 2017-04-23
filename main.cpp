@@ -895,6 +895,7 @@ bool gameLoop()
         strcat(goldText, itoa(playerGold, buffer, 10));
         SDL_Surface* goldTextSurface = TTF_RenderText_Solid(font, goldText, white);
         SDL_BlitSurface(goldTextSurface, NULL, SDL_GetWindowSurface(window), &goldTextRect);
+        SDL_FreeSurface(goldTextSurface);
 
         // Draw the timer
         int secondsSinceStart = difftime(time(NULL), startTime);
@@ -923,6 +924,7 @@ bool gameLoop()
         textRect.x = 130;
         textRect.y = 0;
         SDL_BlitSurface(textSurface, NULL, SDL_GetWindowSurface(window), &textRect);
+        SDL_FreeSurface(textSurface);
 
         SDL_UpdateWindowSurface(window);
 
