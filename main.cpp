@@ -99,55 +99,55 @@ void setAlphaColor(SDL_Surface* surface, int r, int g, int b)
 
 void initTiles()
 {
-    backgroundImage = SDL_LoadBMP("Background.bmp");
-    healthImage = SDL_LoadBMP("Health.bmp");
+    backgroundImage = SDL_LoadBMP("images/Background.bmp");
+    healthImage = SDL_LoadBMP("images/Health.bmp");
     setAlphaColor(healthImage, 255, 255, 255);
-    heartImage = SDL_LoadBMP("Heart.bmp");
+    heartImage = SDL_LoadBMP("images/Heart.bmp");
     setAlphaColor(heartImage, 255, 255, 255);
-    hero = SDL_LoadBMP("Hero.bmp");
+    hero = SDL_LoadBMP("images/Hero.bmp");
     setAlphaColor(hero, 255, 255, 255);
-    skeletonImage = SDL_LoadBMP("Skeleton.bmp");
+    skeletonImage = SDL_LoadBMP("images/Skeleton.bmp");
     setAlphaColor(skeletonImage, 255, 255, 255);
-    superSkeletonImage = SDL_LoadBMP("SuperSkeleton.bmp");
+    superSkeletonImage = SDL_LoadBMP("images/SuperSkeleton.bmp");
     setAlphaColor(superSkeletonImage, 255, 255, 255);
 
-    berserkTile = SDL_LoadBMP("Berserk.bmp");
-    defenseTile = SDL_LoadBMP("Defense.bmp");
-    goldTile = SDL_LoadBMP("Gold.bmp");
-    healingTile = SDL_LoadBMP("Healing.bmp");
-    nothingTile = SDL_LoadBMP("Nothing.bmp");
-    upgradeTile = SDL_LoadBMP("Upgrade.bmp");
+    berserkTile = SDL_LoadBMP("images/Berserk.bmp");
+    defenseTile = SDL_LoadBMP("images/Defense.bmp");
+    goldTile = SDL_LoadBMP("images/Gold.bmp");
+    healingTile = SDL_LoadBMP("images/Healing.bmp");
+    nothingTile = SDL_LoadBMP("images/Nothing.bmp");
+    upgradeTile = SDL_LoadBMP("images/Upgrade.bmp");
 
-    smallBerserkTile = SDL_LoadBMP("SmallBerserk.bmp");
-    smallDefenseTile = SDL_LoadBMP("SmallDefense.bmp");
-    smallGoldTile = SDL_LoadBMP("SmallGold.bmp");
-    smallHealingTile = SDL_LoadBMP("SmallHealing.bmp");
-    smallNothingTile = SDL_LoadBMP("SmallNothing.bmp");
-    smallUpgradeTile = SDL_LoadBMP("SmallUpgrade.bmp");
+    smallBerserkTile = SDL_LoadBMP("images/SmallBerserk.bmp");
+    smallDefenseTile = SDL_LoadBMP("images/SmallDefense.bmp");
+    smallGoldTile = SDL_LoadBMP("images/SmallGold.bmp");
+    smallHealingTile = SDL_LoadBMP("images/SmallHealing.bmp");
+    smallNothingTile = SDL_LoadBMP("images/SmallNothing.bmp");
+    smallUpgradeTile = SDL_LoadBMP("images/SmallUpgrade.bmp");
 
-    goldPileImage = SDL_LoadBMP("GoldPile.bmp");
+    goldPileImage = SDL_LoadBMP("images/GoldPile.bmp");
     setAlphaColor(goldPileImage, 255, 255, 255);
-    rapierImage = SDL_LoadBMP("Rapier.bmp");
+    rapierImage = SDL_LoadBMP("images/Rapier.bmp");
     setAlphaColor(rapierImage, 255, 255, 255);
-    shieldImage = SDL_LoadBMP("Shield.bmp");
+    shieldImage = SDL_LoadBMP("images/Shield.bmp");
     setAlphaColor(shieldImage, 255, 255, 255);
-    superRapierImage = SDL_LoadBMP("SuperRapier.bmp");
+    superRapierImage = SDL_LoadBMP("images/SuperRapier.bmp");
     setAlphaColor(superRapierImage, 255, 255, 255);
-    superShieldImage = SDL_LoadBMP("SuperShield.bmp");
+    superShieldImage = SDL_LoadBMP("images/SuperShield.bmp");
     setAlphaColor(superShieldImage, 255, 255, 255);
-    superSwordImage = SDL_LoadBMP("SuperSword.bmp");
+    superSwordImage = SDL_LoadBMP("images/SuperSword.bmp");
     setAlphaColor(superSwordImage, 255, 255, 255);
-    superWhipImage = SDL_LoadBMP("SuperWhip.bmp");
+    superWhipImage = SDL_LoadBMP("images/SuperWhip.bmp");
     setAlphaColor(superWhipImage, 255, 255, 255);
-    whipImage = SDL_LoadBMP("Whip.bmp");
+    whipImage = SDL_LoadBMP("images/Whip.bmp");
     setAlphaColor(whipImage, 255, 255, 255);
 
     // This function may be a little out of its original scope...
-    getGoldSoundEffect = Mix_LoadWAV("GetGold.wav");
-    healingSoundEffect = Mix_LoadWAV("Healing.wav");
-    hitSoundEffect = Mix_LoadWAV("Hit.wav");
-    hurtSoundEffect = Mix_LoadWAV("Hurt.wav");
-    upgradeSoundEffect = Mix_LoadWAV("Upgrade.wav");
+    getGoldSoundEffect = Mix_LoadWAV("audio/GetGold.wav");
+    healingSoundEffect = Mix_LoadWAV("audio/Healing.wav");
+    hitSoundEffect = Mix_LoadWAV("audio/Hit.wav");
+    hurtSoundEffect = Mix_LoadWAV("audio/Hurt.wav");
+    upgradeSoundEffect = Mix_LoadWAV("audio/Upgrade.wav");
 }
 
 void logInfo(char* info)
@@ -604,7 +604,7 @@ void moveEnemies()
 
 bool gameLoop()
 {
-    Mix_Chunk* currentMusic = Mix_LoadWAV("SlowMusic1.wav");
+    Mix_Chunk* currentMusic = Mix_LoadWAV("audio/SlowMusic1.wav");
     Mix_PlayChannel(1, currentMusic, -1);
     bool playingSlowMusic = true;
 
@@ -963,7 +963,7 @@ bool gameLoop()
         if (playingSlowMusic && secondsSinceStart == 29)
         {
             SDL_Log("Changing the music.");
-            Mix_Chunk* newMusic = Mix_LoadWAV("Music1.wav");
+            Mix_Chunk* newMusic = Mix_LoadWAV("audio/Music1.wav");
             Mix_FreeChunk(currentMusic);
             Mix_PlayChannel(1, newMusic, 0);
             playingSlowMusic = false;
@@ -1140,7 +1140,7 @@ int main()
                               160, 192, 0);
     initTiles();
     SDL_SetWindowIcon(window, hero);  // TODO: Doesn't work.
-    font = TTF_OpenFont("cour.ttf", 12);
+    font = TTF_OpenFont("images/cour.ttf", 12);
 
     std::ifstream highScoreInput("HighScore.txt");
     if (highScoreInput.is_open())
