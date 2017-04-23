@@ -445,7 +445,8 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
             else if (newTile->item == Item::Health)
             {
                 Mix_PlayChannel(2, healingSoundEffect, 0);
-                player.health++;
+                if (player.health < 12)
+                    player.health++;
             }
             else if (newTile->item == Item::Rapier)
             {
@@ -610,7 +611,6 @@ bool gameLoop()
     SDL_Event event;
     while (true)
     {
-        // TODO: Game over screen
         if (difftime(time(NULL), startTime) >= TIMER_LENGTH || player.health < 1)
             return true;
 
@@ -621,7 +621,6 @@ bool gameLoop()
                 case SDL_KEYDOWN:
                     switch (event.key.keysym.sym)
                     {
-                        // TODO: Don't kill other characters by walking on them.
                         case SDLK_DOWN:
                             if (playerYPos < 2)
                             {
@@ -889,7 +888,6 @@ bool gameLoop()
             }
         }
 
-        // TODO: Max health.
         int health = player.health;
         for (; health > 0; health--)
         {
@@ -1057,7 +1055,7 @@ bool titleScreen()
             }
         }
 
-        drawText("A Small World", 30, 5);
+        drawText("Tiny Dungeon", 30, 5);
         drawText("Collect the gold", 20, 40);
         
         SDL_Rect exampleTileRect;
@@ -1106,9 +1104,10 @@ int main()
     SDL_Log("Finished initializing SDL");
 
     // TODO: Better title
-    window = SDL_CreateWindow("A Small World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    window = SDL_CreateWindow("Tiny Dungeon", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               160, 192, 0);
     initTiles();
+    SDL_SetWindowIcon(window, hero);  // TODO: Doesn't work.
     font = TTF_OpenFont("cour.ttf", 12);
 
     bool startPlaying = titleScreen();
