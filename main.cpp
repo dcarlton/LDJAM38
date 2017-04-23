@@ -423,7 +423,29 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
 
     if (newTile->character->isPlayer)
     {
-        oldTile->tileType = getRandomTileType();
+        // Create a new tile, but don't let there be more
+        // than 3 of the same type of tile.
+        while (true)
+        {
+            // Can't see an infinite loop based on randomness going wrong!
+            TileType newTileType = getRandomTileType();
+            int numTilesSameType = 0;
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    if (map[x][y].tileType == newTileType)
+                        numTilesSameType++;
+                }
+            }
+
+            if (numTilesSameType < 3)
+            {
+                oldTile->tileType = newTileType;
+                break;
+            }
+        }
+
         if (newTile->item != Item::None)
         {
             if (newTile->item == Item::GoldPile)
@@ -595,11 +617,14 @@ bool gameLoop()
     }
     map[1][1].character = &player;
     startTime = time(NULL);
+    int startTimeLastFrame = 0;
     const int TIMER_LENGTH = 60;
 
     SDL_Event event;
     while (true)
     {
+        startTimeLastFrame = SDL_GetTicks();
+
         if (difftime(time(NULL), startTime) >= TIMER_LENGTH || player.health < 1)
         {
             if (playerGold > highScore)
@@ -943,6 +968,13 @@ bool gameLoop()
             Mix_PlayChannel(1, newMusic, 0);
             playingSlowMusic = false;
             SDL_Log("Successfully changed the music.");
+        }
+
+        // Sleep until the next frame (60 FPS)
+        int timeSinceFrameStart = SDL_GetTicks() - startTimeLastFrame;
+        if (timeSinceFrameStart < 16)
+        {
+            SDL_Delay(16 - timeSinceFrameStart);
         }
     } // End of the endless while loop
 }
