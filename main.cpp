@@ -36,6 +36,7 @@ typedef struct
     Item item;
 } Tile;
 
+int highScore = 0;
 Tile map[3][3];
 Character player;
 int playerGold = 0;
@@ -600,7 +601,11 @@ bool gameLoop()
     while (true)
     {
         if (difftime(time(NULL), startTime) >= TIMER_LENGTH || player.health < 1)
+        {
+            if (playerGold > highScore)
+                highScore = playerGold;
             return true;
+        }
 
         while (SDL_PollEvent(&event))
         {
@@ -972,7 +977,7 @@ bool gameOverScreen()
         SDL_Surface* gameOverSurface = TTF_RenderText_Solid(font, "Game Over!", white);
         SDL_Rect targetRect;
         targetRect.x = 50;
-        targetRect.y = 50;
+        targetRect.y = 40;
         SDL_BlitSurface(gameOverSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
         SDL_FreeSurface(gameOverSurface);
 
@@ -988,16 +993,25 @@ bool gameOverScreen()
         targetRect.y = 90;
         SDL_BlitSurface(scoreSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
         SDL_FreeSurface(scoreSurface);
+
+        char highScoreText[100];
+        strcpy(highScoreText, "High Score: ");
+        strcat(highScoreText, itoa(highScore, buffer, 10));
+        SDL_Surface* highScoreSurface = TTF_RenderText_Solid(font, highScoreText, white);
+        targetRect.x = 30;
+        targetRect.y = 110;
+        SDL_BlitSurface(highScoreSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+        SDL_FreeSurface(highScoreSurface);
         
         SDL_Surface* tryAgainSurface = TTF_RenderText_Solid(font, "Press Enter to retry.", white);
         targetRect.x = 5;
-        targetRect.y = 110;
+        targetRect.y = 140;
         SDL_BlitSurface(tryAgainSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
         SDL_FreeSurface(tryAgainSurface);
 
         SDL_Surface* quitSurface = TTF_RenderText_Solid(font, "Press Escape to quit.", white);
         targetRect.x = 5;
-        targetRect.y = 130;
+        targetRect.y = 160;
         SDL_BlitSurface(quitSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
         SDL_FreeSurface(quitSurface);
 
@@ -1098,6 +1112,13 @@ int main()
     SDL_SetWindowIcon(window, hero);  // TODO: Doesn't work.
     font = TTF_OpenFont("cour.ttf", 12);
 
+    std::ifstream highScoreInput("HighScore.txt");
+    if (highScoreInput.is_open())
+    {
+        highScoreInput >> highScore;
+        highScoreInput.close();
+    }
+
     bool startPlaying = titleScreen();
     if (startPlaying)
     {
@@ -1125,6 +1146,14 @@ int main()
     }
 
     SDL_Log("Shutting down");
+    std::ofstream highScoreOutput;
+    highScoreOutput.open("HighScore.txt");
+    if (highScoreOutput.is_open())
+    {
+        highScoreOutput << highScore;
+        highScoreOutput.close();
+    }
+
     Mix_CloseAudio();
     TTF_Quit();
     SDL_Quit();
@@ -1137,14 +1166,3 @@ int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     return main();
 }
-
-/*
-gold + enemy
-Take less damage
-+ Strength, - Defense
-Nothing!
-New weapon
-Health potion
-
-Press escape to quit
-*/
