@@ -40,6 +40,7 @@ int highScore = 0;
 Tile map[3][3];
 Character player;
 int playerGold = 0;
+SDL_Surface* playerWeaponImage = NULL;
 WeaponType playerWeaponType;
 int playerXPos;
 int playerYPos;
@@ -68,6 +69,15 @@ SDL_Surface* superShieldImage = NULL;
 SDL_Surface* superSwordImage = NULL;
 SDL_Surface* superWhipImage = NULL;
 SDL_Surface* whipImage = NULL;
+
+SDL_Surface* handheldRapierImage = NULL;
+SDL_Surface* handheldShieldImage = NULL;
+SDL_Surface* handheldSuperRapierImage = NULL;
+SDL_Surface* handheldSuperShieldImage = NULL;
+SDL_Surface* handheldSuperSwordImage = NULL;
+SDL_Surface* handheldSuperWhipImage = NULL;
+SDL_Surface* handheldSwordImage = NULL;
+SDL_Surface* handheldWhipImage = NULL;
 
 SDL_Surface* backgroundImage = NULL;
 SDL_Surface* healthImage = NULL;
@@ -141,6 +151,23 @@ void initTiles()
     setAlphaColor(superWhipImage, 255, 255, 255);
     whipImage = SDL_LoadBMP("images/Whip.bmp");
     setAlphaColor(whipImage, 255, 255, 255);
+
+    handheldRapierImage = SDL_LoadBMP("images/HandheldRapier.bmp");
+    setAlphaColor(handheldRapierImage, 255, 255, 255);
+    handheldShieldImage = SDL_LoadBMP("images/HandheldShield.bmp");
+    setAlphaColor(handheldShieldImage, 255, 255, 255);
+    handheldSuperRapierImage = SDL_LoadBMP("images/HandheldSuperRapier.bmp");
+    setAlphaColor(handheldSuperRapierImage, 255, 255, 255);
+    handheldSuperShieldImage = SDL_LoadBMP("images/HandheldSuperShield.bmp");
+    setAlphaColor(handheldSuperShieldImage, 255, 255, 255);
+    handheldSuperSwordImage = SDL_LoadBMP("images/HandheldSuperSword.bmp");
+    setAlphaColor(handheldSuperSwordImage, 255, 255, 255);
+    handheldSuperWhipImage = SDL_LoadBMP("images/HandheldSuperWhip.bmp");
+    setAlphaColor(handheldSuperWhipImage, 255, 255, 255);
+    handheldSwordImage = SDL_LoadBMP("images/HandheldSword.bmp");
+    setAlphaColor(handheldSwordImage, 255, 255, 255);
+    handheldWhipImage = SDL_LoadBMP("images/HandheldWhip.bmp");
+    setAlphaColor(handheldWhipImage, 255, 255, 255);
 
     // This function may be a little out of its original scope...
     getGoldSoundEffect = Mix_LoadWAV("audio/GetGold.wav");
@@ -359,6 +386,13 @@ void drawTile(int xIndex, int yIndex)
     if (map[xIndex][yIndex].character != NULL)
     {
         SDL_BlitSurface(map[xIndex][yIndex].character->image, NULL, SDL_GetWindowSurface(window), &tileRect);
+
+        // Draw the player's weapon.
+        // Totally not a last-minute hack.
+        if (xIndex == playerXPos && yIndex == playerYPos)
+        {
+            SDL_BlitSurface(playerWeaponImage, NULL, SDL_GetWindowSurface(window), &tileRect);
+        }
     }
 
     // Draw the item on the tile
@@ -464,6 +498,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 1;
+                playerWeaponImage = handheldRapierImage;
                 playerWeaponType = WeaponType::Lunge;
             }
             else if (newTile->item == Item::Shield)
@@ -471,6 +506,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 1;
                 player.strength = 1;
+                playerWeaponImage = handheldShieldImage;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::Whip)
@@ -478,6 +514,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 1;
+                playerWeaponImage = handheldWhipImage;
                 playerWeaponType = WeaponType::Flail;
             }
             else if (newTile->item == Item::SuperRapier)
@@ -485,6 +522,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
+                playerWeaponImage = handheldSuperRapierImage;
                 playerWeaponType = WeaponType::Lunge;
             }
             else if (newTile->item == Item::SuperShield)
@@ -492,6 +530,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 1;
                 player.strength = 2;
+                playerWeaponImage = handheldSuperShieldImage;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::SuperSword)
@@ -499,6 +538,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
+                playerWeaponImage = handheldSuperSwordImage;
                 playerWeaponType = WeaponType::Straight;
             }
             else if (newTile->item == Item::SuperWhip)
@@ -506,6 +546,7 @@ bool moveCharacter(Tile* oldTile, Tile* newTile)
                 Mix_PlayChannel(2, upgradeSoundEffect, 0);
                 player.defense = 0;
                 player.strength = 2;
+                playerWeaponImage = handheldSuperWhipImage;
                 playerWeaponType = WeaponType::Flail;
             }
 
@@ -1160,6 +1201,7 @@ int main()
             player.isPlayer = true;
             player.strength = 1;
             playerGold = 0;
+            playerWeaponImage = handheldSwordImage;
             playerWeaponType = WeaponType::Straight;
             playerXPos = 1;
             playerYPos = 1;
