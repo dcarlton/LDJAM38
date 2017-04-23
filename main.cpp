@@ -43,6 +43,7 @@ WeaponType playerWeaponType;
 int playerXPos;
 int playerYPos;
 time_t startTime;
+const SDL_Color white = {255, 255, 255, 0};
 
 SDL_Surface* berserkTile = NULL;
 SDL_Surface* defenseTile = NULL;
@@ -50,6 +51,13 @@ SDL_Surface* goldTile = NULL;
 SDL_Surface* healingTile = NULL;
 SDL_Surface* nothingTile = NULL;
 SDL_Surface* upgradeTile = NULL;
+
+SDL_Surface* smallBerserkTile = NULL;
+SDL_Surface* smallDefenseTile = NULL;
+SDL_Surface* smallGoldTile = NULL;
+SDL_Surface* smallHealingTile = NULL;
+SDL_Surface* smallNothingTile = NULL;
+SDL_Surface* smallUpgradeTile = NULL;
 
 SDL_Surface* goldPileImage = NULL;
 SDL_Surface* rapierImage = NULL;
@@ -108,6 +116,13 @@ void initTiles()
     healingTile = SDL_LoadBMP("Healing.bmp");
     nothingTile = SDL_LoadBMP("Nothing.bmp");
     upgradeTile = SDL_LoadBMP("Upgrade.bmp");
+
+    smallBerserkTile = SDL_LoadBMP("SmallBerserk.bmp");
+    smallDefenseTile = SDL_LoadBMP("SmallDefense.bmp");
+    smallGoldTile = SDL_LoadBMP("SmallGold.bmp");
+    smallHealingTile = SDL_LoadBMP("SmallHealing.bmp");
+    smallNothingTile = SDL_LoadBMP("SmallNothing.bmp");
+    smallUpgradeTile = SDL_LoadBMP("SmallUpgrade.bmp");
 
     goldPileImage = SDL_LoadBMP("GoldPile.bmp");
     setAlphaColor(goldPileImage, 255, 255, 255);
@@ -885,7 +900,6 @@ bool gameLoop()
         }
 
         // Draw the amount of gold
-        SDL_Color white = {255, 255, 255, 0};
         SDL_Rect goldTextRect;
         goldTextRect.x = 0;
         goldTextRect.y = 12;
@@ -944,7 +958,6 @@ bool gameLoop()
 
 bool gameOverScreen()
 {
-    SDL_Color white = {255, 255, 255, 0};
     while (true)
     {
         SDL_Event event;
@@ -1009,6 +1022,76 @@ bool gameOverScreen()
     return false;
 }
 
+void drawText(char* text, int x, int y)
+{
+    SDL_Rect targetRect;
+    targetRect.x = x;
+    targetRect.y = y;
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, white);
+    SDL_BlitSurface(textSurface, NULL, SDL_GetWindowSurface(window), &targetRect);
+    SDL_FreeSurface(textSurface);
+}
+
+bool titleScreen()
+{
+    while (true)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+                case SDL_KEYDOWN:
+                    switch (event.key.keysym.sym)
+                    {
+                        case SDLK_RETURN:
+                            return true;
+
+                        case SDLK_ESCAPE:
+                            return false;
+                    }
+                    break;
+
+                case SDL_QUIT:
+                    return false;
+            }
+        }
+
+        drawText("A Small World", 30, 5);
+        drawText("Collect the gold", 20, 40);
+        
+        SDL_Rect exampleTileRect;
+        exampleTileRect.x = 5;
+        exampleTileRect.y = 60;
+        SDL_BlitSurface(smallGoldTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("Gold + Enemy", 15, 58);
+
+        exampleTileRect.y = 75;
+        SDL_BlitSurface(smallUpgradeTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("New weapon", 15, 73);
+
+        exampleTileRect.y = 90;
+        SDL_BlitSurface(smallHealingTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("Health potion", 15, 88);
+
+        exampleTileRect.y = 105;
+        SDL_BlitSurface(smallBerserkTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("+Strength, -Defense", 15, 103);
+
+        exampleTileRect.y = 120;
+        SDL_BlitSurface(smallDefenseTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("Take less damage", 15, 118);
+
+        exampleTileRect.y = 135;
+        SDL_BlitSurface(smallNothingTile, NULL, SDL_GetWindowSurface(window), &exampleTileRect);
+        drawText("Nothing", 15, 133);
+
+        drawText("Press Enter to start.", 10, 160);
+
+        SDL_UpdateWindowSurface(window);
+    }
+}
+
 int main()
 {
     srand(time(NULL));
@@ -1017,6 +1100,7 @@ int main()
     TTF_Init();
     Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
     // Should be 60 and 30
+    // TODO: Up the volume
     Mix_Volume(1, 60);
     Mix_Volume(2, 30);
     SDL_Log("Finished initializing SDL");
@@ -1027,26 +1111,30 @@ int main()
     initTiles();
     font = TTF_OpenFont("cour.ttf", 12);
 
-    while (true)
+    bool startPlaying = titleScreen();
+    if (startPlaying)
     {
-        player.defense = 0;
-        player.health = 3;
-        player.image = hero;
-        player.isPlayer = true;
-        player.strength = 1;
-        playerGold = 0;
-        playerWeaponType = WeaponType::Straight;
-        playerXPos = 1;
-        playerYPos = 1;
+        while (true)
+        {
+            player.defense = 0;
+            player.health = 3;
+            player.image = hero;
+            player.isPlayer = true;
+            player.strength = 1;
+            playerGold = 0;
+            playerWeaponType = WeaponType::Straight;
+            playerXPos = 1;
+            playerYPos = 1;
 
-        bool completedGame = gameLoop();
-        Mix_HaltChannel(1);
-        if (!completedGame)
-            break;
+            bool completedGame = gameLoop();
+            Mix_HaltChannel(1);
+            if (!completedGame)
+                break;
 
-        bool playAgain = gameOverScreen();
-        if (!playAgain)
-            break;
+            bool playAgain = gameOverScreen();
+            if (!playAgain)
+                break;
+        }
     }
 
     SDL_Log("Shutting down");
@@ -1062,3 +1150,14 @@ int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     return main();
 }
+
+/*
+gold + enemy
+Take less damage
++ Strength, - Defense
+Nothing!
+New weapon
+Health potion
+
+Press escape to quit
+*/
