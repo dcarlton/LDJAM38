@@ -932,9 +932,12 @@ bool gameLoop()
         // Switch the music track halfway through
         if (playingSlowMusic && secondsSinceStart == 29)
         {
+            SDL_Log("Changing the music.");
             Mix_Chunk* newMusic = Mix_LoadWAV("Music1.wav");
             Mix_FreeChunk(currentMusic);
             Mix_PlayChannel(1, newMusic, 0);
+            playingSlowMusic = false;
+            SDL_Log("Successfully changed the music.");
         }
     } // End of the endless while loop
 }
