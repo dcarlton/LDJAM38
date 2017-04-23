@@ -164,37 +164,25 @@ Tile getRandomTile()
     tile.character = NULL;
     tile.item = Item::None;
     
-    switch (rand() % 6)
+    int random = rand() % 20;
+    if (random < 4)
+        tile.tileType = TileType::Berserk;
+    else if (random < 8)
+        tile.tileType = TileType::Defense;
+    else if (random < 11)
+        tile.tileType = TileType::Gold;
+    else if (random < 12)
+        tile.tileType = TileType::Healing;
+    else if (random < 17)
+        tile.tileType = TileType::Nothing;
+    else if (random < 20)
+        tile.tileType = TileType::Upgrade;
+    else
     {
-        case 0:
-            tile.tileType = TileType::Berserk;
-            break;
-
-        case 1:
-            tile.tileType = TileType::Defense;
-            break;
-
-        case 2:
-            tile.tileType = TileType::Gold;
-            break;
-
-        case 3:
-            tile.tileType = TileType::Healing;
-            break;
-        
-        case 4:
-            tile.tileType = TileType::Nothing;
-            break;
-
-        case 5:
-            tile.tileType = TileType::Upgrade;
-            break;
-
-        default:
-            SDL_Log("Whelp, 0-5 doesn't equal any number 0-5. I broke math.");
-            tile.tileType = TileType::Nothing;
-            break;
+        SDL_Log("I broke math.");
+        tile.tileType = TileType::Nothing;
     }
+
     return tile;
 }
 
