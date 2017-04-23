@@ -575,7 +575,7 @@ void moveEnemies()
     }
 }
 
-void gameLoop()
+bool gameLoop()
 {
     Mix_Chunk* currentMusic = Mix_LoadWAV("SlowMusic1.wav");
     Mix_PlayChannel(1, currentMusic, -1);
@@ -597,7 +597,7 @@ void gameLoop()
     {
         // TODO: Game over screen
         if (difftime(time(NULL), startTime) >= TIMER_LENGTH || player.health < 1)
-            return;
+            return true;
 
         while (SDL_PollEvent(&event))
         {
@@ -842,12 +842,12 @@ void gameLoop()
                             break;
 
                         case SDLK_ESCAPE:
-                            return;
+                            return false;
                     }
                     break;
 
                 case SDL_QUIT:
-                    return;
+                    return false;
             }
         }
 
@@ -1034,8 +1034,10 @@ int main()
         playerXPos = 1;
         playerYPos = 1;
 
-        gameLoop();
+        bool completedGame = gameLoop();
         Mix_HaltChannel(1);
+        if (!completedGame)
+            break;
 
         bool playAgain = gameOverScreen();
         if (!playAgain)
