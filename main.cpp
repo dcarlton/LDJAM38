@@ -1131,10 +1131,8 @@ int main()
     SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
     TTF_Init();
     Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
-    // Should be 60 and 30
-    // TODO: Up the volume
-    Mix_Volume(1, 60);
-    Mix_Volume(2, 30);
+    Mix_Volume(1, 128);
+    Mix_Volume(2, 64);
     SDL_Log("Finished initializing SDL");
 
     // TODO: Better title
